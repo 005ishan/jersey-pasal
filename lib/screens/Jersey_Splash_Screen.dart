@@ -13,7 +13,7 @@ class _JerseySplashScreenState extends State<JerseySplashScreen> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
