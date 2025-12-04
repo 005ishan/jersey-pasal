@@ -35,7 +35,9 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10)),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.asset('assets/team1.png',
+                          child: Image.asset('assets/jersey5.jpg',
+                              width: 300,
+                              height: 800,
                               fit: BoxFit.cover),
                         ),
                       ),
@@ -64,7 +66,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10)),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.asset('assets/team3.png',
+                                child: Image.asset('assets/jersey6.jpg',
                                     fit: BoxFit.cover),
                               ),
                             ),

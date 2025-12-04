@@ -1,7 +1,7 @@
-  import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
 
-  class JerseyOnboarding1Screen extends StatelessWidget {
+class JerseyOnboarding1Screen extends StatelessWidget {
   const JerseyOnboarding1Screen({super.key});
 
   @override
@@ -17,10 +17,7 @@ import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
               Center(
                 child: Text(
                   'JERSEYपसल',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
 
@@ -39,7 +36,9 @@ import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.asset(
-                            'assets/jersey1.png',
+                            'assets/jersey1.jpg',
+                            width: 300,
+                            height: 800,
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -53,12 +52,13 @@ import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey[200]),
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey[200],
+                              ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: Image.asset(
-                                  'assets/jersey2.png',
+                                  'assets/jersey2.jpg',
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -68,12 +68,13 @@ import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey[200]),
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey[200],
+                              ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
                                 child: Image.asset(
-                                  'assets/jersey3.png',
+                                  'assets/jersey3.jpg',
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -93,17 +94,16 @@ import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
                   children: [
                     Text(
                       "WELCOME TO JERSEYPASAL",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 10),
                     Text(
                       "Your one-stop destination for premium and authentic jerseys.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[700],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                     ),
                   ],
                 ),
@@ -114,13 +114,16 @@ import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => JerseyOnboarding2Screen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => JerseyOnboarding2Screen(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
