@@ -62,6 +62,9 @@ flutter:
     - assets/jersey1.png
     - assets/jersey2.png
     - assets/jersey3.png
+    - assets/jersey4.png
+    - assets/jersey5.png
+    - assets/jersey6.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

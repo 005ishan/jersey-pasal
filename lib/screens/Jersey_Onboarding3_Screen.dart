@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/Jersey_Onboarding3_Screen.dart';
 
-class JerseyOnboarding2Screen extends StatelessWidget {
-  const JerseyOnboarding2Screen({super.key});
+class JerseyOnboarding3Screen extends StatelessWidget {
+  const JerseyOnboarding3Screen({super.key});
 
-   @override
+  
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -17,9 +17,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                 child: Text(
                   'JERSEYपसल',
                   style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
 
@@ -35,7 +33,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10)),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.asset('assets/team1.png',
+                          child: Image.asset('assets/quality1.png',
                               fit: BoxFit.cover),
                         ),
                       ),
@@ -51,7 +49,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10)),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.asset('assets/jersey4.jpg',
+                                child: Image.asset('assets/quality2.png',
                                     fit: BoxFit.cover),
                               ),
                             ),
@@ -64,7 +62,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(10)),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.asset('assets/team3.png',
+                                child: Image.asset('assets/quality3.png',
                                     fit: BoxFit.cover),
                               ),
                             ),
@@ -82,13 +80,13 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "CHOOSE YOUR TEAM",
+                      "PREMIUM QUALITY",
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 10),
                     Text(
-                      "Find jerseys from all your favorite clubs and national teams.",
+                      "We deliver premium, durable, and customer-approved jerseys.",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey[700]),
                     ),
@@ -101,8 +99,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => JerseyOnboarding3Screen()));
+                    // Navigate to login/home screen
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
@@ -116,7 +113,7 @@ class JerseyOnboarding2Screen extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Next',
+                        'Get Started',
                         style: TextStyle(color: Colors.white),
                       ),
                       SizedBox(width: 10),
