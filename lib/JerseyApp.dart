@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/Jersey_Onboarding1_Screen.dart';
+import 'package:jerseypasal/screens/Jersey_Splash_Screen.dart';
 
 class JerseyApp extends StatelessWidget {
   const JerseyApp({super.key});
@@ -8,7 +8,7 @@ class JerseyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: JerseyOnboarding1Screen(),
+      home: JerseySplashScreen(),
     );
   }
 }
