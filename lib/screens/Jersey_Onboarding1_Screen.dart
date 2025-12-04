@@ -12,73 +12,38 @@ class JerseyOnboarding1Screen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
+              const SizedBox(height: 20),
+
+              // Title
+              const Center(
                 child: Text(
                   'JERSEYपसल',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              // —— Grid of Images ——
+              // Image Grid
               Expanded(
                 child: Row(
                   children: [
+                    // Left Big Image
                     Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.grey[200],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset(
-                            'assets/images/jersey1.jpg',
-                            width: 300,
-                            height: 800,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
+                      child: _imageCard('assets/images/jersey1.jpg'),
                     ),
-                    SizedBox(width: 10),
-
+                    const SizedBox(width: 10),
+                    // Right Two Stacked Images
                     Expanded(
                       child: Column(
                         children: [
                           Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey[200],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset(
-                                  'assets/images/jersey2.jpg',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
+                            child: _imageCard('assets/images/jersey2.jpg'),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey[200],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset(
-                                  'assets/images/jersey3.jpg',
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
+                            child: _imageCard('assets/images/jersey3.jpg'),
                           ),
                         ],
                       ),
@@ -87,9 +52,10 @@ class JerseyOnboarding1Screen extends StatelessWidget {
                 ),
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-              Center(
+              // Welcome Text
+              const Center(
                 child: Column(
                   children: [
                     Text(
@@ -103,34 +69,36 @@ class JerseyOnboarding1Screen extends StatelessWidget {
                     Text(
                       "Your one-stop destination for premium and authentic jerseys.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ],
                 ),
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
+              // Next Button
               Center(
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => JerseyOnboarding2Screen(),
+                        builder: (_) => const JerseyOnboarding2Screen(),
                       ),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
+                    children: const [
                       Text(
                         'Next',
                         style: TextStyle(fontSize: 16, color: Colors.white),
@@ -141,8 +109,29 @@ class JerseyOnboarding1Screen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              const SizedBox(height: 20),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // Helper method for image cards
+  Widget _imageCard(String imagePath) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.grey[200],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Image.asset(
+          imagePath,
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.cover,
         ),
       ),
     );
