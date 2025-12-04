@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+
+class JerseyOnboarding2Screen extends StatelessWidget {
+  const JerseyOnboarding2Screen({super.key});
+
+   @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Center(
+                child: Text(
+                  'JERSEYपसल',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 20),
+
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset('assets/team1.png',
+                              fit: BoxFit.cover),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset('assets/team2.png',
+                                    fit: BoxFit.cover),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset('assets/team3.png',
+                                    fit: BoxFit.cover),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 20),
+
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      "CHOOSE YOUR TEAM",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      "Find jerseys from all your favorite clubs and national teams.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 20),
+
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => JerseyOnboarding3Screen()));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Next',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      SizedBox(width: 10),
+                      Icon(Icons.arrow_forward, color: Colors.white),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
