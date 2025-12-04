@@ -1,4 +1,5 @@
   import 'package:flutter/material.dart';
+import 'package:jerseypasal/screens/Jersey_Onboarding2_Screen.dart';
 
   class JerseyOnboarding1Screen extends StatelessWidget {
   const JerseyOnboarding1Screen({super.key});
@@ -114,7 +115,7 @@
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => JerseyOnboardingScreen2()));
+                        MaterialPageRoute(builder: (_) => JerseyOnboarding2Screen()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
