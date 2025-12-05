@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class JerseyOnboarding3Screen extends StatelessWidget {
   const JerseyOnboarding3Screen({super.key});
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,7 +16,12 @@ class JerseyOnboarding3Screen extends StatelessWidget {
               Center(
                 child: Text(
                   'JERSEYपसल',
+
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+
+                  style: TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
+
                 ),
               ),
 
@@ -27,6 +33,7 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                     Expanded(
                       child: Container(
                         decoration: BoxDecoration(
+
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -38,6 +45,16 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                             height: 800,
                             fit: BoxFit.cover,
                           ),
+
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset('assets/images/jersey7.jpg',
+                          width: 300,
+                              height: 800,
+                              fit: BoxFit.cover),
+
                         ),
                       ),
                     ),
@@ -48,6 +65,7 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
+
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -57,6 +75,14 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                                   'assets/images/jersey8.jpg',
                                   fit: BoxFit.cover,
                                 ),
+
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset('assets/images/jersey8.jpg',
+                                    fit: BoxFit.cover),
+
                               ),
                             ),
                           ),
@@ -64,6 +90,7 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
+
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -79,6 +106,20 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                         ],
                       ),
                     ),
+
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset('assets/images/jersey9.jpg',
+                                    fit: BoxFit.cover),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+
                   ],
                 ),
               ),
@@ -90,10 +131,15 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                   children: [
                     Text(
                       "PREMIUM QUALITY",
+
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
+
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+
                     ),
                     SizedBox(height: 10),
                     Text(
@@ -114,7 +160,12 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
+
                     padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
@@ -131,6 +182,7 @@ class JerseyOnboarding3Screen extends StatelessWidget {
                     ],
                   ),
                 ),
+
               ),
             ],
           ),
@@ -139,3 +191,13 @@ class JerseyOnboarding3Screen extends StatelessWidget {
     );
   }
 }
+
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
