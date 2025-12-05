@@ -110,7 +110,7 @@ class JerseyOnboarding1Screen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 5),
             ],
           ),
         ),
