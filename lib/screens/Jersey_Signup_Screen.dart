@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class JerseyLoginScreen extends StatelessWidget {
-  const JerseyLoginScreen({super.key});
+class JerseySignupScreen extends StatelessWidget {
+  const JerseySignupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,18 +28,13 @@ class JerseyLoginScreen extends StatelessWidget {
                   children: [
                     Text(
                       'WELCOME TO',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 5),
                     Text(
                       'Jerseyपसल',
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
+                          fontSize: 22, fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -51,26 +46,13 @@ class JerseyLoginScreen extends StatelessWidget {
               const SizedBox(height: 15),
               inputField("Password", isPassword: true),
               const SizedBox(height: 10),
-
-              const SizedBox(height: 25),
-
-              const Text(
-                'OR',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-
-              const SizedBox(height: 25),
-              socialButton('assets/icons/google.png', 'Continue with Google'),
-              const SizedBox(height: 15),
-              socialButton(
-                'assets/icons/facebook.png',
-                'Continue with Facebook',
-              ),
+              inputField("Confirm Password", isPassword: true),
+              const SizedBox(height: 10),
 
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  "Forgot password?",
+                  "I have an account",
                   style: TextStyle(
                     color: Colors.blue,
                     fontSize: 13,
@@ -81,33 +63,12 @@ class JerseyLoginScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              loginButton(context),
+              signupButton(context),
 
               const SizedBox(height: 20),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget socialButton(String logoPath, String text) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.black54),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(logoPath, height: 22),
-          const SizedBox(width: 10),
-          Text(
-            text,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-        ],
       ),
     );
   }
@@ -121,16 +82,20 @@ class JerseyLoginScreen extends StatelessWidget {
       ),
       child: TextField(
         obscureText: isPassword,
-        decoration: InputDecoration(hintText: hint, border: InputBorder.none),
+        decoration: InputDecoration(
+          hintText: hint,
+          border: InputBorder.none,
+        ),
       ),
     );
   }
 
-  Widget loginButton(BuildContext context) {
+  Widget signupButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           padding: const EdgeInsets.symmetric(vertical: 15),
@@ -139,7 +104,7 @@ class JerseyLoginScreen extends StatelessWidget {
           ),
         ),
         child: const Text(
-          "Login",
+          "Signup",
           style: TextStyle(
             fontSize: 18,
             color: Colors.white,
