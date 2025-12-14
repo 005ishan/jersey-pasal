@@ -9,7 +9,7 @@ class JerseyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: JerseyAppTheme.lightTheme,
+      theme: jerseyAppTheme(),
       home: JerseySplashScreen(),
     );
   }

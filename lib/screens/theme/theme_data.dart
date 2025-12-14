@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-class JerseyAppTheme {
-  JerseyAppTheme._(); 
-
-  static ThemeData lightTheme = ThemeData(
+ThemeData jerseyAppTheme() {
+  return ThemeData(
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.white,
     primaryColor: Colors.blue,
@@ -22,6 +20,7 @@ class JerseyAppTheme {
         textStyle: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
+          fontFamily: 'OpenSansBold',
         ),
         padding: const EdgeInsets.symmetric(vertical: 15),
         shape: RoundedRectangleBorder(
@@ -48,10 +47,12 @@ class JerseyAppTheme {
         fontSize: 26,
         fontWeight: FontWeight.bold,
         color: Colors.black,
+        fontFamily: 'OpenSansBold',
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         color: Colors.black87,
+        fontFamily: 'OpenSansRegular',
       ),
     ),
   );
