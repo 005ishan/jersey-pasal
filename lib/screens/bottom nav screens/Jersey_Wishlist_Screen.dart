@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-class JerseyHomeScreen extends StatelessWidget {
-  const JerseyHomeScreen({super.key});
+class JerseyWishlistScreen extends StatelessWidget {
+  const JerseyWishlistScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: const Text('Wishlist'),
         backgroundColor: Colors.blue,
         centerTitle: true,
       ),
       body: const Center(
         child: Text(
-          'Welcome to Home Screen',
+          'Welcome to Wishlist Screen',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,

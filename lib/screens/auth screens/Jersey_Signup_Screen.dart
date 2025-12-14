@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jerseypasal/screens/auth screens/Jersey_Login_Screen.dart';
 
 class JerseySignupScreen extends StatefulWidget {
   const JerseySignupScreen({super.key});
@@ -23,28 +24,31 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               children: [
                 const SizedBox(height: 20),
-                const SizedBox(height: 15),
-                const Center(
+
+                Center(
                   child: Column(
                     children: [
                       Text(
                         'Create an account in',
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                        style: theme.textTheme.headlineMedium,
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       Text(
                         'Jerseyपसल',
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ],
                   ),
@@ -53,14 +57,9 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
 
                 TextFormField(
                   controller: emailController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Email",
-                    prefixIcon: const Icon(Icons.email),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
+                    prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -77,14 +76,9 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
+                    prefixIcon: Icon(Icons.lock),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -101,14 +95,9 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
                 TextFormField(
                   controller: confirmPasswordController,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Confirm Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
+                    prefixIcon: Icon(Icons.lock),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -129,42 +118,31 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
                       if (_formKey.currentState!.validate()) {
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      "Signup",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Text("Sign Up"),
                   ),
                 ),
-
                 const SizedBox(height: 15),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       "Already have an account? ",
-                      style: TextStyle(fontSize: 14),
+                      style: theme.textTheme.bodyMedium,
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pop(context); 
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const JerseyLoginScreen(),
+                          ),
+                        );
                       },
-                      child: const Text(
+                      child: Text(
                         "Login",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.blue,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

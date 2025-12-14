@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/Jersey_Signup_Screen.dart';
+import 'package:jerseypasal/screens/Jersey_BottonNavigation_Screen.dart';
+import 'package:jerseypasal/screens/auth screens/Jersey_Signup_Screen.dart';
 
 class JerseyLoginScreen extends StatefulWidget {
   const JerseyLoginScreen({super.key});
@@ -22,11 +23,12 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
@@ -34,30 +36,18 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
               children: [
                 const SizedBox(height: 40),
 
-                const Center(
-                  child: Text(
-                    "Welcome to Jerseyपसल",
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 0, 0, 0),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                Text(
+                  "Welcome to Jerseyपसल",
+                  style: theme.textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 40),
 
                 TextFormField(
                   controller: emailController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Email",
-                    prefixIcon: const Icon(Icons.email),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
+                    prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -74,14 +64,9 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                 TextFormField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
+                    prefixIcon: Icon(Icons.lock),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -103,26 +88,13 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const JerseySignupScreen(),
+                            builder: (context) =>
+                                const JerseyBottomNavigationScreen(),
                           ),
                         );
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Text("Login"),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -130,9 +102,9 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
+                    Text(
                       "Don't have an account? ",
-                      style: TextStyle(fontSize: 14),
+                      style: theme.textTheme.bodyMedium,
                     ),
                     GestureDetector(
                       onTap: () {
@@ -143,11 +115,10 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         "Sign Up",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.blue,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.primaryColor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
