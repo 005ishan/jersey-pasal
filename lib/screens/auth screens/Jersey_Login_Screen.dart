@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/Jersey_BottonNavigation_Screen.dart';
+import 'package:jerseypasal/screens/widgets/JerseyBottonNavigation.dart';
 import 'package:jerseypasal/screens/auth%20screens/Jersey_Signup_Screen.dart';
 
 class JerseyLoginScreen extends StatefulWidget {
@@ -104,7 +104,7 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const JerseyBottomNavigationScreen(),
+                                  const JerseyBottomNavigation(),
                             ),
                           );
                         }

@@ -5,16 +5,16 @@ import 'package:jerseypasal/screens/bottom nav screens/Jersey_Home_Screen.dart';
 import 'package:jerseypasal/screens/bottom nav screens/Jersey_Profile_Screen.dart';
 import 'package:jerseypasal/screens/bottom nav screens/Jersey_Wishlist_Screen.dart';
 
-class JerseyBottomNavigationScreen extends StatefulWidget {
-  const JerseyBottomNavigationScreen({super.key});
+class JerseyBottomNavigation extends StatefulWidget {
+  const JerseyBottomNavigation({super.key});
 
   @override
-  State<JerseyBottomNavigationScreen> createState() =>
-      _JerseyBottomNavigationScreenState();
+  State<JerseyBottomNavigation> createState() =>
+      _JerseyBottomNavigationState();
 }
 
-class _JerseyBottomNavigationScreenState
-    extends State<JerseyBottomNavigationScreen> {
+class _JerseyBottomNavigationState
+    extends State<JerseyBottomNavigation> {
   int _selectedIndex = 0;
 
   final List<Widget> _bottomScreens = const [

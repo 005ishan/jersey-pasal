@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jerseypasal/screens/widgets/JerseyAppBar.dart';
 
 
 class JerseyHomeScreen extends StatelessWidget {
@@ -9,17 +10,7 @@ class JerseyHomeScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Home',
-          style: theme.textTheme.headlineMedium?.copyWith(
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: theme.primaryColor,
-        centerTitle: true,
-      ),
+      appBar: JerseyAppBar(),
       body: Center(
         child: Text(
           'Welcome to Home Screen',

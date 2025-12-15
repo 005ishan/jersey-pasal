@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'onboarding screens/Jersey_Onboarding1_Screen.dart';
+import '../onboarding screens/Jersey_Onboarding1_Screen.dart';
 
 class JerseySplashScreen extends StatefulWidget {
   const JerseySplashScreen({super.key});
