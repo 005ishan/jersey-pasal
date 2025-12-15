@@ -30,7 +30,7 @@ class JerseyAppBar extends StatelessWidget implements PreferredSizeWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Welcome 👋',
+                        'Welcome',
                         style: TextStyle(fontSize: 14, color: Colors.white70),
                       ),
                       Text(

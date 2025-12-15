@@ -71,6 +71,10 @@ flutter:
     - assets/images/jersey9.jpg
     - assets/icons/facebook.png
     - assets/icons/google.png
+    - assets/images/neymar.png
+    - assets/images/england.png
+    - assets/images/realmadrid.png
+    - assets/images/memphis.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
