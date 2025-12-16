@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:jerseypasal/screens/widgets/JerseyAppBar.dart';
+import 'package:jerseypasal/screens/widgets/JerseyCard.dart';
 
-class JerseyHomeScreen extends StatelessWidget {
+class JerseyHomeScreen extends StatefulWidget {
   const JerseyHomeScreen({super.key});
 
+  @override
+  State<JerseyHomeScreen> createState() => _JerseyHomeScreenState();
+}
+
+class _JerseyHomeScreenState extends State<JerseyHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const JerseyAppBar(),
       body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
+              width: double.infinity,
               height: 220,
-              margin: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(color: const Color(0xFF1877F2)),
+              decoration: const BoxDecoration(color: Color(0xFF1877F2)),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   ClipRRect(
@@ -29,7 +37,7 @@ class JerseyHomeScreen extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-                  const SizedBox(width: 60),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -46,30 +54,25 @@ class JerseyHomeScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerLeft,
-                            child: RichText(
-                              text: const TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Big',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                          RichText(
+                            text: const TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Big',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  TextSpan(
-                                    text: ' offers',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                                ),
+                                TextSpan(
+                                  text: ' offers',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -91,111 +94,149 @@ class JerseyHomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-
-            const SizedBox(height: 10),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'New Collections',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search jerseys...',
+                  prefixIcon: const Icon(Icons.search),
+                  filled: true,
+                  fillColor: Colors.grey.shade200,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'New Collections',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontFamily: 'OpenSansBold',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
             const SizedBox(height: 10),
-
             SizedBox(
               height: 260,
-              child: SingleChildScrollView(
+              child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    buildJerseyCard(
-                      "assets/images/realmadrid.png",
-                      "Real Madrid",
-                      "Rs.1,500",
-                    ),
-                    const SizedBox(width: 16),
-                    buildJerseyCard(
-                      "assets/images/england.png",
-                      "England",
-                      "Rs.3,500",
-                    ),
-                    const SizedBox(width: 16),
-                    buildJerseyCard(
-                      "assets/images/memphis.png",
-                      "Memphis Grizzlies",
-                      "Rs.2,000",
-                    ),
-                    const SizedBox(width: 16),
-                  ],
+                physics: const BouncingScrollPhysics(),
+                children: const [
+                  JerseyCard(
+                    imagePath: "assets/images/realmadrid.png",
+                    name: "Real Madrid",
+                    price: "Rs.1,500",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/barcelona.png",
+                    name: "Barcelona",
+                    price: "Rs.3,500",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/arsenal.png",
+                    name: "Arsenal",
+                    price: "Rs.4,500",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/memphis.png",
+                    name: "Memphis Grizzlies",
+                    price: "Rs.2,000",
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Football Jerseys',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontFamily: 'OpenSansBold',
+                  fontWeight: FontWeight.w700,
                 ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 260,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                physics: const BouncingScrollPhysics(),
+                children: const [
+                  JerseyCard(
+                    imagePath: "assets/images/brazil.png",
+                    name: "Brazil",
+                    price: "Rs.1,750",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/england.png",
+                    name: "England",
+                    price: "Rs.3,500",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/psg.png",
+                    name: "PSG",
+                    price: "Rs.2,999",
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Basketball Jerseys',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontFamily: 'OpenSansBold',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 260,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                physics: const BouncingScrollPhysics(),
+                children: const [
+                  JerseyCard(
+                    imagePath: "assets/images/memphis.png",
+                    name: "Memphis Grizzlies",
+                    price: "Rs.1,500",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/memphis.png",
+                    name: "Memphis Grizzlies",
+                    price: "Rs.3,500",
+                  ),
+                  SizedBox(width: 16),
+                  JerseyCard(
+                    imagePath: "assets/images/memphis.png",
+                    name: "Memphis Grizzlies",
+                    price: "Rs.2,000",
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 20),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget buildJerseyCard(String imagePath, String name, String price) {
-    return Container(
-      width: 160,
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            child: Image.asset(
-              imagePath,
-              width: 160,
-              height: 200,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  price,
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

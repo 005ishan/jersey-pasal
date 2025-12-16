@@ -15,7 +15,6 @@ class JerseyOnboarding1Screen extends StatelessWidget {
             children: [
               const SizedBox(height: 20),
 
-              // Title
               const Center(
                 child: Text(
                   'JERSEYपसल',
@@ -25,16 +24,13 @@ class JerseyOnboarding1Screen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Image Grid
               Expanded(
                 child: Row(
                   children: [
-                    // Left Big Image
                     Expanded(
                       child: _imageCard('assets/images/jersey1.jpg'),
                     ),
                     const SizedBox(width: 10),
-                    // Right Two Stacked Images
                     Expanded(
                       child: Column(
                         children: [
@@ -54,7 +50,6 @@ class JerseyOnboarding1Screen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Welcome Text
               const Center(
                 child: Column(
                   children: [
@@ -77,7 +72,6 @@ class JerseyOnboarding1Screen extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // Next Button
               Center(
                 child: ElevatedButton(
                   onPressed: () {
@@ -118,7 +112,6 @@ class JerseyOnboarding1Screen extends StatelessWidget {
     );
   }
 
-  // Helper method for image cards
   Widget _imageCard(String imagePath) {
     return Container(
       decoration: BoxDecoration(

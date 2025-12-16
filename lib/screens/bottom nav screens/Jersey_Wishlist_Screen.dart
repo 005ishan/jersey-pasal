@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jerseypasal/screens/widgets/JerseyAppBar.dart';
 
 class JerseyWishlistScreen extends StatelessWidget {
   const JerseyWishlistScreen({super.key});
@@ -6,11 +7,7 @@ class JerseyWishlistScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wishlist'),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-      ),
+      appBar: JerseyAppBar(),
       body: const Center(
         child: Text(
           'Welcome to Wishlist Screen',

@@ -29,10 +29,10 @@ class _JerseyBottomNavigationState
     return Scaffold(
       body: _bottomScreens[_selectedIndex],
       bottomNavigationBar: Container(
-        color: Colors.blue,
+        color: Color(0xFF1877F2),
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
         child: GNav(
-          backgroundColor: Colors.blue,
+          backgroundColor: Color(0xFF1877F2),
           color: Colors.white,
           activeColor: Colors.black,
           tabBackgroundColor: Colors.white,

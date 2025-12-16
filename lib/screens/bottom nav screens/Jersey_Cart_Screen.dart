@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jerseypasal/screens/widgets/JerseyAppBar.dart';
 
 class JerseyCartScreen extends StatelessWidget {
   const JerseyCartScreen({super.key});
@@ -6,11 +7,7 @@ class JerseyCartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cart'),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
-      ),
+      appBar: JerseyAppBar(),
       body: const Center(
         child: Text(
           'Welcome to Cart Screen',
