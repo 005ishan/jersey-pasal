@@ -25,20 +25,42 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen> {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      bottomLeft: Radius.circular(12),
-                    ),
-                    child: Image.asset(
-                      "assets/images/neymar.png",
-                      width: 150,
-                      height: 220,
-                      fit: BoxFit.cover,
-                    ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isTablet = MediaQuery.of(context).size.width >= 600;
+
+                      return isTablet
+                          ? Expanded(
+                              flex: 1,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  bottomLeft: Radius.circular(12),
+                                ),
+                                child: Image.asset(
+                                  "assets/images/neymar.png",
+                                  height: 220,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            )
+                          : ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(12),
+                                bottomLeft: Radius.circular(12),
+                              ),
+                              child: Image.asset(
+                                "assets/images/neymar.png",
+                                width: 150,
+                                height: 220,
+                                fit: BoxFit.cover,
+                              ),
+                            );
+                    },
                   ),
                   const SizedBox(width: 16),
                   Expanded(
+                    flex: 1,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Column(
