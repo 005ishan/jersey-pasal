@@ -1,27 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/auth screens/Jersey_Login_Screen.dart';
+import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 
-class JerseySignupScreen extends StatefulWidget {
-  const JerseySignupScreen({super.key});
+class JerseySignupScreen extends StatelessWidget {
+  JerseySignupScreen({super.key});
 
-  @override
-  State<JerseySignupScreen> createState() => _JerseySignupScreenState();
-}
-
-class _JerseySignupScreenState extends State<JerseySignupScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
-  }
+  final ValueNotifier<bool> agreeToTerms = ValueNotifier(false);
 
   @override
   Widget build(BuildContext context) {
@@ -36,25 +26,20 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  Center(
-                    child: Column(
-                      children: [
-                        Text(
-                          'Create an account in',
-                          style: theme.textTheme.headlineMedium,
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'Jerseyपसल',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+                  Text(
+                    'Create an account in',
+                    style: theme.textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Jerseyपसल',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 30),
 
+                  /// Email
                   TextFormField(
                     controller: emailController,
                     decoration: const InputDecoration(
@@ -73,6 +58,7 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 15),
 
+                  /// Password
                   TextFormField(
                     controller: passwordController,
                     obscureText: true,
@@ -92,6 +78,7 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 15),
 
+                  /// Confirm Password
                   TextFormField(
                     controller: confirmPasswordController,
                     obscureText: true,
@@ -111,17 +98,86 @@ class _JerseySignupScreenState extends State<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  ValueListenableBuilder<bool>(
+                    valueListenable: agreeToTerms,
+                    builder: (context, value, _) {
+                      return CheckboxListTile(
+                        value: value,
+                        onChanged: (val) {
+                          agreeToTerms.value = val ?? false;
+                        },
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        visualDensity: const VisualDensity(
+                          horizontal: -4, 
+                          vertical: -4,
+                        ),
+                        title: Transform.translate(
+                          offset: const Offset(-8, 0), 
+                          child: Wrap(
+                            children: [
+                              Text(
+                                "I agree to the ",
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              GestureDetector(
+                                onTap: () {},
+                                child: Text(
+                                  "Terms & Conditions",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Text(" and ", style: theme.textTheme.bodySmall),
+                              GestureDetector(
+                                onTap: () {},
+                                child: Text(
+                                  "Privacy Policy",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  /// Sign Up Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        if (_formKey.currentState!.validate()) {}
+                        if (!_formKey.currentState!.validate()) return;
+
+                        if (!agreeToTerms.value) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "You must agree to the Terms & Conditions and Privacy Policy",
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        // ✅ Signup logic here
                       },
                       child: const Text("Sign Up"),
                     ),
                   ),
+
                   const SizedBox(height: 15),
 
+                  /// Login redirect
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

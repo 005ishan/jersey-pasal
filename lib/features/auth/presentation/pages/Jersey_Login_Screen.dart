@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/widgets/JerseyBottonNavigation.dart';
-import 'package:jerseypasal/screens/auth%20screens/Jersey_Signup_Screen.dart';
+import 'package:jerseypasal/core/widgets/JerseyBottonNavigation.dart';
+import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Signup_Screen.dart';
 
 class JerseyLoginScreen extends StatefulWidget {
   const JerseyLoginScreen({super.key});
@@ -140,7 +140,7 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const JerseySignupScreen(),
+                              builder: (context) => JerseySignupScreen(),
                             ),
                           );
                         },

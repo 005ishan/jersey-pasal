@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/widgets/JerseyAppBar.dart';
-import 'package:jerseypasal/screens/widgets/JerseyCard.dart';
+import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
+import 'package:jerseypasal/core/widgets/JerseyCard.dart';
 
 class JerseyHomeScreen extends StatefulWidget {
   const JerseyHomeScreen({super.key});

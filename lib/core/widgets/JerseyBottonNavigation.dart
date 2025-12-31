@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:jerseypasal/screens/bottom nav screens/Jersey_Cart_Screen.dart';
-import 'package:jerseypasal/screens/bottom nav screens/Jersey_Home_Screen.dart';
-import 'package:jerseypasal/screens/bottom nav screens/Jersey_Profile_Screen.dart';
-import 'package:jerseypasal/screens/bottom nav screens/Jersey_Wishlist_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Cart_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Home_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Profile_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Wishlist_Screen.dart';
 
 class JerseyBottomNavigation extends StatefulWidget {
   const JerseyBottomNavigation({super.key});

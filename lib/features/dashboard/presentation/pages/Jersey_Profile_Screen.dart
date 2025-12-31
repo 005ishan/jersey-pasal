@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/widgets/JerseyAppBar.dart';
+import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 
-class JerseyCartScreen extends StatelessWidget {
-  const JerseyCartScreen({super.key});
+class JerseyProfileScreen extends StatelessWidget {
+  const JerseyProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,7 +10,7 @@ class JerseyCartScreen extends StatelessWidget {
       appBar: JerseyAppBar(),
       body: const Center(
         child: Text(
-          'Welcome to Cart Screen',
+          'Welcome to Profile Screen',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,

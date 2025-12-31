@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/screens/onboarding%20screens/Jersey_Onboarding3_Screen.dart';
+import 'package:jerseypasal/features/onboarding/presentation/pages/Jersey_Onboarding3_Screen.dart';
 
 class JerseyOnboarding2Screen extends StatelessWidget {
   const JerseyOnboarding2Screen({super.key});
