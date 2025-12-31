@@ -1,11 +1,12 @@
 import 'package:hive/hive.dart';
 import 'package:jerseypasal/core/constants/hive_table_constant.dart';
+import 'package:jerseypasal/features/auth/domain/entities/auth_entity.dart';
+import 'package:uuid/uuid.dart';
 
 part 'auth_hive_model.g.dart';
 
 @HiveType(typeId: HiveTableConstant.authTypeId)
-class AuthHiveModel extends HiveObject{
-
+class AuthHiveModel extends HiveObject {
   @HiveField(0)
   final String? authId;
   @HiveField(1)
@@ -27,4 +28,28 @@ class AuthHiveModel extends HiveObject{
     this.password,
     this.profilePicture,
   }) : authId = authId ?? Uuid().v4();
+
+  //from Entity
+  factory AuthHiveModel.fromEntity(AuthEntity entity) {
+    return AuthHiveModel(
+      authId: entity.authId,
+      fullName: entity.fullName,
+      email: entity.email,
+      username: entity.username,
+      password: entity.password,
+      profilePicture: entity.profilePicture,
+    );
+  }
+
+  //to Entity
+  AuthEntity toEntity() {
+    return AuthEntity(
+      authId: authId,
+      email: email,
+      username: username,
+      fullName: fullName,
+      password: password,
+      profilePicture: profilePicture,
+    );
+  }
 }
