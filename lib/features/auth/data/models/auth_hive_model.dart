@@ -33,11 +33,11 @@ class AuthHiveModel extends HiveObject {
   factory AuthHiveModel.fromEntity(AuthEntity entity) {
     return AuthHiveModel(
       authId: entity.authId,
-      fullName: entity.fullName,
       email: entity.email,
       username: entity.username,
       password: entity.password,
-      profilePicture: entity.profilePicture,
+      profilePicture: entity.profilePicture, 
+      fullName: '',
     );
   }
 

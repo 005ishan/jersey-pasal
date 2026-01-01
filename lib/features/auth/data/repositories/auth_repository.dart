@@ -94,7 +94,7 @@ class AuthRepository implements IAuthRepository {
       );
 
       if (!result) {
-        return Left(LocalDatabaseFailure());
+        return Left(LocalDatabaseFailure(message: "User not found"));
       }
 
       return Right(true);
