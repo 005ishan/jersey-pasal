@@ -2,10 +2,10 @@ class HiveTableConstant {
   HiveTableConstant._();
 
   //Database name
-  static const String dbName = 'lost_n_found_db';
+  static const String dbName = 'jersey-pasal';
 
-  static const int batchTypeId = 0;
-  static const String batchTable = 'batch_table';
+  static const int favouriteTypeId = 0;
+  static const String favouriteTable = 'favourite_table';
 
   static const int itemTypeId = 1;
   static const String itemTable = 'item_table';

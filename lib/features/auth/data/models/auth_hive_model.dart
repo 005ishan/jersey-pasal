@@ -52,4 +52,23 @@ class AuthHiveModel extends HiveObject {
       profilePicture: profilePicture,
     );
   }
+
+  // copyWith
+  AuthHiveModel copyWith({
+    String? authId,
+    String? fullName,
+    String? email,
+    String? username,
+    String? password,
+    String? profilePicture,
+  }) {
+    return AuthHiveModel(
+      authId: authId ?? this.authId,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      password: password ?? this.password,
+      profilePicture: profilePicture ?? this.profilePicture,
+    );
+  }
 }
