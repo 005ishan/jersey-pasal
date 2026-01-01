@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
+import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
 
-class JerseySignupScreen extends StatelessWidget {
-  JerseySignupScreen({super.key});
+class JerseySignupScreen extends ConsumerStatefulWidget {
+  const JerseySignupScreen({super.key});
 
+  @override
+  ConsumerState<JerseySignupScreen> createState() => _JerseySignupScreenState();
+}
+
+class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController emailController = TextEditingController();
@@ -16,6 +24,29 @@ class JerseySignupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // Watch the auth state
+    final authState = ref.watch(authViewModelProvider);
+
+    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+      // Handle error messages
+      if (next.status == AuthStatus.error && next.errorMessage != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
+      }
+
+      // Navigate on successful registration
+      if (next.status == AuthStatus.authenticated && next.authEntity != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Registration successful!")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const JerseyLoginScreen()),
+        );
+      }
+    });
 
     return Scaffold(
       body: Center(
@@ -98,6 +129,7 @@ class JerseySignupScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
+                  /// Terms & Conditions
                   ValueListenableBuilder<bool>(
                     valueListenable: agreeToTerms,
                     builder: (context, value, _) {
@@ -110,11 +142,11 @@ class JerseySignupScreen extends StatelessWidget {
                         contentPadding: EdgeInsets.zero,
                         dense: true,
                         visualDensity: const VisualDensity(
-                          horizontal: -4, 
+                          horizontal: -4,
                           vertical: -4,
                         ),
                         title: Transform.translate(
-                          offset: const Offset(-8, 0), 
+                          offset: const Offset(-8, 0),
                           child: Wrap(
                             children: [
                               Text(
@@ -155,23 +187,43 @@ class JerseySignupScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (!_formKey.currentState!.validate()) return;
+                      onPressed: authState.status == AuthStatus.loading
+                          ? null
+                          : () {
+                              if (!_formKey.currentState!.validate()) return;
 
-                        if (!agreeToTerms.value) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "You must agree to the Terms & Conditions and Privacy Policy",
+                              if (!agreeToTerms.value) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "You must agree to the Terms & Conditions and Privacy Policy",
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              // Call register in ViewModel
+                              ref
+                                  .read(authViewModelProvider.notifier)
+                                  .register(
+                                    email: emailController.text.trim(),
+                                    username: emailController.text
+                                        .trim(), // or username field
+                                    password: passwordController.text.trim(),
+                                    context: context,
+                                  );
+                            },
+                      child: authState.status == AuthStatus.loading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
                               ),
-                            ),
-                          );
-                          return;
-                        }
-
-                        // ✅ Signup logic here
-                      },
-                      child: const Text("Sign Up"),
+                            )
+                          : const Text("Sign Up"),
                     ),
                   ),
 
