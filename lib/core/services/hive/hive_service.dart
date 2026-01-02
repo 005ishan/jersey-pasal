@@ -4,77 +4,58 @@ import 'package:jerseypasal/core/constants/hive_table_constant.dart';
 import 'package:jerseypasal/features/auth/data/models/auth_hive_model.dart';
 import 'package:path_provider/path_provider.dart';
 
-final hiveServiceProvider = Provider<HiveService>((ref) {
-  return HiveService();
-});
+final hiveServiceProvider = Provider<HiveService>((ref) => HiveService());
 
 class HiveService {
-  //Initialize Hive
+  // Initialize Hive
   Future<void> init() async {
     final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/${HiveTableConstant.dbName}';
-    Hive.init(path);
+    Hive.init('${directory.path}/${HiveTableConstant.dbName}');
     _registerAdapters();
-    await _openBoxes;
+    await _openBoxes();
   }
 
-  //Register all type adapters
   void _registerAdapters() {
-    //authAdapter
     if (!Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
   }
 
-  //Open all boxes
-  Future<void> _openBoxes() async {
-    await Hive.openBox<AuthHiveModel>(HiveTableConstant.authTable);
+  Future<void> _openBoxes() async { 
+    if (!Hive.isBoxOpen(HiveTableConstant.authTable)) {
+      await Hive.openBox<AuthHiveModel>(HiveTableConstant.authTable);
+    }
   }
 
-  //close all boxes
-  Future<void> close() async {
-    await Hive.close();
+  Future<void> close() async => Hive.close();
+
+  // Safe getter for auth box
+  Box<AuthHiveModel> get _authBox {
+    if (!Hive.isBoxOpen(HiveTableConstant.authTable)) {
+      throw Exception(
+          "Hive box '${HiveTableConstant.authTable}' not opened. Call init() first.");
+    }
+    return Hive.box<AuthHiveModel>(HiveTableConstant.authTable);
   }
 
-  // =============== Auth CRUD Operations ====================
-
-  // Get auth box
-  Box<AuthHiveModel> get _authBox =>
-      Hive.box<AuthHiveModel>(HiveTableConstant.authTable);
-
-  //Register
+  // CRUD Operations
   Future<AuthHiveModel> registerUser(AuthHiveModel model) async {
     await _authBox.put(model.authId, model);
     return model;
   }
 
-  //Login
   Future<AuthHiveModel?> loginUser(String email, String password) async {
     final users = _authBox.values.where(
       (user) => user.email == email && user.password == password,
     );
-    if (users.isNotEmpty) {
-      return users.first;
-    }
-    return null;
+    return users.isNotEmpty ? users.first : null;
   }
 
-  //logout
-  Future<void> logoutUser() async {}
+  AuthHiveModel? getCurrentUser(String authId) => _authBox.get(authId);
 
-  //get current User
-  AuthHiveModel? getCurrentUser(String authId) {
-    return _authBox.get(authId);
-  }
+  bool isEmailExists(String email) =>
+      _authBox.values.any((user) => user.email == email);
 
-  //isEmail Exists
-  bool isEmailExists(String email) {
-    final users = _authBox.values.where((user) => user.email == email);
-    return users.isNotEmpty;
-  }
-
-  //get user by email
-  // Get user by email
   AuthHiveModel? getUserByEmail(String email) {
     try {
       return _authBox.values.firstWhere((user) => user.email == email);
@@ -83,7 +64,6 @@ class HiveService {
     }
   }
 
-  //forgot password
   Future<bool> resetPassword({
     required String email,
     required String newPassword,
@@ -93,7 +73,26 @@ class HiveService {
 
     final updatedUser = user.copyWith(password: newPassword);
     await _authBox.put(user.authId, updatedUser);
-
     return true;
+  }
+}
+
+// Add copyWith extension to AuthHiveModel
+extension AuthHiveModelCopy on AuthHiveModel {
+  AuthHiveModel copyWith({
+    String? fullName,
+    String? email,
+    String? username,
+    String? password,
+    String? profilePicture,
+  }) {
+    return AuthHiveModel(
+      authId: authId,
+      fullName: fullName ?? this.fullName,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      password: password ?? this.password,
+      profilePicture: profilePicture ?? this.profilePicture,
+    );
   }
 }

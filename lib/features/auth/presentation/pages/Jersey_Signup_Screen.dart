@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jerseypasal/core/utils/snackbar_utils.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
@@ -21,6 +22,8 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
 
   final ValueNotifier<bool> agreeToTerms = ValueNotifier(false);
 
+  bool _listenerInitialized = false; // Prevent duplicate snackbars
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -28,25 +31,23 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
     // Watch the auth state
     final authState = ref.watch(authViewModelProvider);
 
-    ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      // Handle error messages
-      if (next.status == AuthStatus.error && next.errorMessage != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(next.errorMessage!)));
-      }
-
-      // Navigate on successful registration
-      if (next.status == AuthStatus.authenticated && next.authEntity != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Registration successful!")),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const JerseyLoginScreen()),
-        );
-      }
-    });
+    if (!_listenerInitialized) {
+      _listenerInitialized = true;
+      ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+        if (previous?.status != next.status) {
+          if (next.status == AuthStatus.error && next.errorMessage != null) {
+            SnackbarUtils.showError(context, next.errorMessage!);
+          } else if (next.status == AuthStatus.authenticated &&
+              next.authEntity != null) {
+            SnackbarUtils.showSuccess(context, "Login successful!");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const JerseyLoginScreen()),
+            );
+          }
+        }
+      });
+    }
 
     return Scaffold(
       body: Center(

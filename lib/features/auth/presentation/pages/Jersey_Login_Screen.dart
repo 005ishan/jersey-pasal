@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jerseypasal/core/utils/snackbar_utils.dart';
+import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
 import 'package:jerseypasal/core/widgets/JerseyBottonNavigation.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Signup_Screen.dart';
 
-class JerseyLoginScreen extends StatefulWidget {
+class JerseyLoginScreen extends ConsumerStatefulWidget {
   const JerseyLoginScreen({super.key});
 
   @override
-  State<JerseyLoginScreen> createState() => _JerseyLoginScreenState();
+  ConsumerState<JerseyLoginScreen> createState() => _JerseyLoginScreenState();
 }
 
-class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
+class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -21,8 +25,32 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
     super.dispose();
   }
 
+  bool _hasInitializedListener = false; // <- guard flag snackbar 2 choti aayo so
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final authState = ref.watch(authViewModelProvider);
+
+    if (!_hasInitializedListener) {
+      _hasInitializedListener = true;
+      ref.listen<AuthState>(authViewModelProvider, (previous, next) {
+        if (previous?.status != next.status) {
+          if (next.status == AuthStatus.error && next.errorMessage != null) {
+            SnackbarUtils.showError(context, next.errorMessage!);
+          } else if (next.status == AuthStatus.authenticated &&
+              next.authEntity != null) {
+            SnackbarUtils.showSuccess(context, "Login successful!");
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const JerseyBottomNavigation()),
+            );
+          }
+        }
+      });
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -34,20 +62,18 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Center(
-                    child: Text(
-                      "Welcome to Jerseyपसल",
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 0, 0),
-                      ),
-                      textAlign: TextAlign.center,
+                  const Text(
+                    "Welcome to Jerseyपसल",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-
                   const SizedBox(height: 40),
 
+                  // Email
                   TextFormField(
                     controller: emailController,
                     decoration: InputDecoration(
@@ -71,6 +97,7 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Password
                   TextFormField(
                     controller: passwordController,
                     obscureText: true,
@@ -95,20 +122,23 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const JerseyBottomNavigation(),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: authState.status == AuthStatus.loading
+                          ? null
+                          : () {
+                              if (!_formKey.currentState!.validate()) return;
+
+                              ref
+                                  .read(authViewModelProvider.notifier)
+                                  .login(
+                                    email: emailController.text.trim(),
+                                    password: passwordController.text.trim(),
+                                    context: context,
+                                  );
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 15),
@@ -116,18 +146,28 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: const Text(
-                        "Login",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: authState.status == AuthStatus.loading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              "Login",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 20),
 
+                  // Signup redirect
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -140,7 +180,7 @@ class _JerseyLoginScreenState extends State<JerseyLoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => JerseySignupScreen(),
+                              builder: (context) => const JerseySignupScreen(),
                             ),
                           );
                         },

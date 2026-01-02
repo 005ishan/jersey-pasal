@@ -16,12 +16,11 @@ class AuthLocalDatasource implements IAuthDatasource {
 
   @override
   Future<bool> register(AuthHiveModel model) async {
-    try {
-      await _hiveService.registerUser(model);
-      return true;
-    } catch (e) {
-      return false;
-    }
+    final existing = _hiveService.getUserByEmail(model.email);
+    if (existing != null) return false;
+
+    final saved = await _hiveService.registerUser(model);
+    return saved != null;
   }
 
   @override
