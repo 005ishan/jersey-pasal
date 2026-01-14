@@ -34,7 +34,7 @@ class AuthHiveModel extends HiveObject {
     return AuthHiveModel(
       authId: entity.authId,
       email: entity.email,
-      username: entity.username,
+      username: entity.username!,
       password: entity.password,
       profilePicture: entity.profilePicture, 
       fullName: '',

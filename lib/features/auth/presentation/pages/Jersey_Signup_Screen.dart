@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jerseypasal/app/routes/app_routes.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
@@ -14,44 +15,28 @@ class JerseySignupScreen extends ConsumerStatefulWidget {
 
 class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
-
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   final ValueNotifier<bool> agreeToTerms = ValueNotifier(false);
 
-  bool _listenerInitialized = false; // Prevent duplicate snackbars
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    agreeToTerms.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authViewModelProvider);
     final theme = Theme.of(context);
 
-    // Watch the auth state
-    final authState = ref.watch(authViewModelProvider);
-
-    if (!_listenerInitialized) {
-      _listenerInitialized = true;
-      ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-        if (previous?.status != next.status) {
-          if (next.status == AuthStatus.error && next.errorMessage != null) {
-            SnackbarUtils.showError(context, next.errorMessage!);
-          } else if (next.status == AuthStatus.authenticated &&
-              next.authEntity != null) {
-            SnackbarUtils.showSuccess(context, "Login successful!");
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const JerseyLoginScreen()),
-            );
-          }
-        }
-      });
-    }
-
     return Scaffold(
-      body: Center(
-        child: SafeArea(
+      body: SafeArea(
+        child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
@@ -71,7 +56,7 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  /// Email
+                  // Email
                   TextFormField(
                     controller: emailController,
                     decoration: const InputDecoration(
@@ -90,7 +75,7 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 15),
 
-                  /// Password
+                  // Password
                   TextFormField(
                     controller: passwordController,
                     obscureText: true,
@@ -110,7 +95,7 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 15),
 
-                  /// Confirm Password
+                  // Confirm Password
                   TextFormField(
                     controller: confirmPasswordController,
                     obscureText: true,
@@ -130,61 +115,23 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  /// Terms & Conditions
+                  // Terms & Conditions
                   ValueListenableBuilder<bool>(
                     valueListenable: agreeToTerms,
                     builder: (context, value, _) {
                       return CheckboxListTile(
                         value: value,
-                        onChanged: (val) {
-                          agreeToTerms.value = val ?? false;
-                        },
+                        onChanged: (val) => agreeToTerms.value = val ?? false,
+                        title: const Text(
+                          "I agree to the Terms & Conditions and Privacy Policy",
+                        ),
                         controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                        title: Transform.translate(
-                          offset: const Offset(-8, 0),
-                          child: Wrap(
-                            children: [
-                              Text(
-                                "I agree to the ",
-                                style: theme.textTheme.bodySmall,
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  "Terms & Conditions",
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                              Text(" and ", style: theme.textTheme.bodySmall),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  "Privacy Policy",
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.primaryColor,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
                       );
                     },
                   ),
-
                   const SizedBox(height: 30),
 
-                  /// Sign Up Button
+                  // Sign Up Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -192,59 +139,44 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
                           ? null
                           : () {
                               if (!_formKey.currentState!.validate()) return;
-
                               if (!agreeToTerms.value) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text(
-                                      "You must agree to the Terms & Conditions and Privacy Policy",
+                                      "You must agree to Terms & Privacy Policy",
                                     ),
                                   ),
                                 );
                                 return;
                               }
 
-                              // Call register in ViewModel
                               ref
                                   .read(authViewModelProvider.notifier)
                                   .register(
-                                    email: emailController.text.trim(),
-                                    username: emailController.text
-                                        .trim(), // or username field
-                                    password: passwordController.text.trim(),
                                     context: context,
+                                    email: emailController.text.trim(),
+                                    username: emailController.text.trim(),
+                                    password: passwordController.text.trim(),
                                   );
                             },
                       child: authState.status == AuthStatus.loading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
+                          ? const CircularProgressIndicator()
                           : const Text("Sign Up"),
                     ),
                   ),
 
                   const SizedBox(height: 15),
 
-                  /// Login redirect
+                  // Login redirect
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        "Already have an account? ",
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                      const Text("Already have an account? "),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacement(
+                          AppRoutes.pushReplacement(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const JerseyLoginScreen(),
-                            ),
+                            const JerseyLoginScreen(),
                           );
                         },
                         child: Text(

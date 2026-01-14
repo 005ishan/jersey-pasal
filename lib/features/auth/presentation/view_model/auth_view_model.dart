@@ -6,6 +6,7 @@ import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart'
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/reset_password_usecase.dart';
+import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
 import 'package:dartz/dartz.dart';
@@ -39,11 +40,9 @@ class AuthViewModel extends Notifier<AuthState> {
     required BuildContext context,
     required String email,
     required String username,
-    String? password,
+    required String password,
   }) async {
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
-    //wait for 2 seconds
-    await Future.delayed(Duration(seconds: 2));
 
     final params = RegisterUsecaseParams(
       email: email,
@@ -64,10 +63,15 @@ class AuthViewModel extends Notifier<AuthState> {
       (success) {
         state = state.copyWith(
           status: success ? AuthStatus.authenticated : AuthStatus.error,
-          errorMessage: success ? null : "Registration failed",
         );
+
         if (success) {
           SnackbarUtils.showSuccess(context, "Registration successful!");
+
+          // Navigate to Login screen after registration
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppRoutes.pushReplacement(context, const JerseyLoginScreen());
+          });
         } else {
           SnackbarUtils.showError(context, "Registration failed");
         }
