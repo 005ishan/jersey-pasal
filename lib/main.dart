@@ -8,6 +8,11 @@ void main() async {
 
   final hiveService = HiveService();
   await hiveService.init();
+
+  //shared preference ko object
+  //shared pref = async
+  //provider = sync
+
   runApp(
     ProviderScope(
       overrides: [hiveServiceProvider.overrideWithValue(hiveService)],
