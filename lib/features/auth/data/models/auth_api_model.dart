@@ -8,7 +8,7 @@ class AuthApiModel {
   AuthApiModel({required this.email, this.password, this.profilePicture});
 
   //toJSON
-  Map<String, dynamic> toJSON() {
+  Map<String, dynamic> toJson() {
     return {
       "email": email,
       "password": password,
@@ -17,7 +17,7 @@ class AuthApiModel {
   }
 
   //fromJSON
-  factory AuthApiModel.fromJSON(Map<String, dynamic> json) {
+  factory AuthApiModel.fromJson(Map<String, dynamic> json) {
     return AuthApiModel(
       email: json['email'] as String,
       password: json['password'] as String?,
