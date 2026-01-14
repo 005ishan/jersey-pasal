@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jerseypasal/app/routes/app_routes.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
@@ -9,6 +10,7 @@ import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
 import 'package:dartz/dartz.dart';
 import 'package:jerseypasal/core/error/failures.dart';
+import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Home_Screen.dart';
 
 // Provider
 final authViewModelProvider = NotifierProvider<AuthViewModel, AuthState>(
@@ -78,6 +80,7 @@ class AuthViewModel extends Notifier<AuthState> {
     required String email,
     required String password,
   }) async {
+    // Set loading state
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
 
     final params = LoginUsecaseParams(email: email, password: password);
@@ -85,18 +88,32 @@ class AuthViewModel extends Notifier<AuthState> {
 
     result.fold(
       (failure) {
+        // Login failed
         state = state.copyWith(
           status: AuthStatus.error,
           errorMessage: failure.message,
         );
+
+        // Show error snackbar
         SnackbarUtils.showError(context, failure.message);
       },
       (user) {
+        // Login successful
         state = state.copyWith(
           status: AuthStatus.authenticated,
           authEntity: user,
         );
+
+        // Show success snackbar
         SnackbarUtils.showSuccess(context, "Login successful!");
+
+        // Navigate safely after current frame
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          AppRoutes.pushReplacement(
+            context,
+            const JerseyHomeScreen(), // <-- Your home screen
+          );
+        });
       },
     );
   }

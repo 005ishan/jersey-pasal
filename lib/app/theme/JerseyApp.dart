@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jerseypasal/core/widgets/Jersey_Splash_Screen.dart';
+import 'package:jerseypasal/features/splash/presentation/pages/Jersey_Splash_Screen.dart';
 import 'package:jerseypasal/app/theme/theme_data.dart';
 
 class JerseyApp extends StatelessWidget {
