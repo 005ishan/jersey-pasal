@@ -7,7 +7,7 @@ import 'package:jerseypasal/features/auth/data/models/auth_api_model.dart';
 import 'package:jerseypasal/features/auth/data/models/auth_hive_model.dart';
 
 //Create Provider
-final authRemoteProvider = Provider<IAuthRemoteDataSource>((ref) {
+final authRemoteDataSourceProvider = Provider<IAuthRemoteDataSource>((ref) {
   return AuthRemoteDatasource(
     apiClient: ref.read(apiClientProvider),
     userSessionService: ref.read(userSessionServiceProvider),
