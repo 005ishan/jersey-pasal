@@ -89,7 +89,10 @@ class AuthRepository implements IAuthRepository {
       } on DioException catch (e) {
         return Left(
           ApiFailure(
-            message: e.response?.data['message'] ?? 'Registration failed',
+            message: e.response?.data is Map
+                ? e.response?.data['message']
+                : e.response?.data?.toString() ?? 'Registration failed',
+
             statusCode: e.response?.statusCode,
           ),
         );

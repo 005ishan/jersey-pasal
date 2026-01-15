@@ -90,7 +90,6 @@ extension AuthHiveModelCopy on AuthHiveModel {
       authId: authId,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
-      username: username ?? this.username,
       password: password ?? this.password,
       profilePicture: profilePicture ?? this.profilePicture,
     );

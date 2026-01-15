@@ -10,17 +10,15 @@ import 'package:jerseypasal/features/auth/domain/repositories/auth_repository.da
 class RegisterUsecaseParams extends Equatable {
   final String email;
   final String? password;
-  final String username;
 
   RegisterUsecaseParams({
     required this.email,
     required this.password,
-    required this.username,
   });
 
   @override
   // TODO: implement props
-  List<Object?> get props => [email, password, username];
+  List<Object?> get props => [email, password];
 }
 
 // provider
@@ -38,7 +36,6 @@ class RegisterUsecase
   Future<Either<Failure, bool>> call(RegisterUsecaseParams params) {
     final entity = AuthEntity(
       email: params.email,
-      username: params.username,
       password: params.password,
     );
     return _authRepository.register(entity);

@@ -155,7 +155,6 @@ class _JerseySignupScreenState extends ConsumerState<JerseySignupScreen> {
                                   .register(
                                     context: context,
                                     email: emailController.text.trim(),
-                                    username: emailController.text.trim(),
                                     password: passwordController.text.trim(),
                                   );
                             },

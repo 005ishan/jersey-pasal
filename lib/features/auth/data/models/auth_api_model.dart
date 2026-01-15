@@ -5,18 +5,25 @@ class AuthApiModel {
   final String? password;
   final String? profilePicture;
 
-  AuthApiModel({required this.email, this.password, this.profilePicture});
+  AuthApiModel({
+    required this.email,
+    this.password,
+    this.profilePicture,
+  });
 
-  //toJSON
+  // Convert to JSON safely (omit nulls)
   Map<String, dynamic> toJson() {
-    return {
-      "email": email,
-      "password": password,
-      "profilePicture": profilePicture,
+    final data = <String, dynamic>{
+      'email': email,
     };
+
+    if (password != null) data['password'] = password;
+    if (profilePicture != null) data['profilePicture'] = profilePicture;
+
+    return data;
   }
 
-  //fromJSON
+  // Create model from JSON
   factory AuthApiModel.fromJson(Map<String, dynamic> json) {
     return AuthApiModel(
       email: json['email'] as String,
@@ -24,7 +31,8 @@ class AuthApiModel {
       profilePicture: json['profilePicture'] as String?,
     );
   }
-  //toEntity
+
+  // Convert to Entity
   AuthEntity toEntity() {
     return AuthEntity(
       email: email,
@@ -33,7 +41,7 @@ class AuthApiModel {
     );
   }
 
-  //fromEntity
+  // Create model from Entity
   factory AuthApiModel.fromEntity(AuthEntity entity) {
     return AuthApiModel(
       email: entity.email,
@@ -41,7 +49,8 @@ class AuthApiModel {
       profilePicture: entity.profilePicture,
     );
   }
-  //toEntityList
+
+  // Convert a list of models to a list of entities
   static List<AuthEntity> toEntityList(List<AuthApiModel> models) {
     return models.map((model) => model.toEntity()).toList();
   }
