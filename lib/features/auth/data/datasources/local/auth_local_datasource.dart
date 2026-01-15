@@ -1,18 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jerseypasal/core/services/hive/hive_service.dart';
+import 'package:jerseypasal/core/services/storage/user_session_service.dart';
 import 'package:jerseypasal/features/auth/data/datasources/auth_datasource.dart';
 import 'package:jerseypasal/features/auth/data/models/auth_hive_model.dart';
 
 final authLocalDatasourceProvider = Provider<AuthLocalDatasource>((ref) {
   final hiveService = ref.watch(hiveServiceProvider);
-  return AuthLocalDatasource(hiveService: hiveService);
+  final userSessionService = ref.read(userSessionServiceProvider);
+  return AuthLocalDatasource(
+    hiveService: hiveService,
+    userSessionService: userSessionService,
+  );
 });
 
-class AuthLocalDatasource implements IAuthDatasource {
+class AuthLocalDatasource implements IAuthLocalDatasource {
   final HiveService _hiveService;
+  final UserSessionService _userSessionService;
 
-  AuthLocalDatasource({required HiveService hiveService})
-    : _hiveService = hiveService;
+  AuthLocalDatasource({
+    required HiveService hiveService,
+    required UserSessionService userSessionService,
+  }) : _hiveService = hiveService,
+       _userSessionService = userSessionService;
 
   @override
   Future<bool> register(AuthHiveModel model) async {
@@ -26,7 +35,16 @@ class AuthLocalDatasource implements IAuthDatasource {
   @override
   Future<AuthHiveModel?> login(String email, String password) async {
     try {
-      return await _hiveService.loginUser(email, password);
+      final user = await _hiveService.loginUser(email, password);
+      // user ko details lai shared prefs ma save garne
+      if (user != null) {
+        await _userSessionService.saveUserSession(
+          userId: user.authId!,
+          email: user.email,
+          profilePicture: user.profilePicture ?? "",
+        );
+      }
+      return user;
     } catch (e) {
       return null;
     }

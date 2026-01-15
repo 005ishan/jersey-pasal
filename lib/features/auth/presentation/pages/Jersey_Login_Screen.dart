@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jerseypasal/core/utils/snackbar_utils.dart';
-import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
+import 'package:jerseypasal/app/routes/app_routes.dart';
 import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
-import 'package:jerseypasal/core/widgets/JerseyBottonNavigation.dart';
+import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Signup_Screen.dart';
 
 class JerseyLoginScreen extends ConsumerStatefulWidget {
   const JerseyLoginScreen({super.key});
 
   @override
-  ConsumerState<JerseyLoginScreen> createState() => _JerseyLoginScreenState();
+  ConsumerState<JerseyLoginScreen> createState() =>
+      _JerseyLoginScreenState();
 }
 
 class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   void dispose() {
@@ -25,31 +25,9 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
     super.dispose();
   }
 
-  bool _hasInitializedListener = false; // <- guard flag snackbar 2 choti aayo so
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     final authState = ref.watch(authViewModelProvider);
-
-    if (!_hasInitializedListener) {
-      _hasInitializedListener = true;
-      ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-        if (previous?.status != next.status) {
-          if (next.status == AuthStatus.error && next.errorMessage != null) {
-            SnackbarUtils.showError(context, next.errorMessage!);
-          } else if (next.status == AuthStatus.authenticated &&
-              next.authEntity != null) {
-            SnackbarUtils.showSuccess(context, "Login successful!");
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const JerseyBottomNavigation()),
-            );
-          }
-        }
-      });
-    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -60,33 +38,25 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
             child: Form(
               key: _formKey,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
                     "Welcome to Jerseyपसल",
                     style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
 
-                  // Email
+                  // Email field
                   TextFormField(
                     controller: emailController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Email",
-                      prefixIcon: const Icon(Icons.email),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
+                      prefixIcon: Icon(Icons.email),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Email cannot be empty';
                       }
                       if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
@@ -97,21 +67,16 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Password
+                  // Password field
                   TextFormField(
                     controller: passwordController,
                     obscureText: true,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: "Password",
-                      prefixIcon: const Icon(Icons.lock),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
+                      prefixIcon: Icon(Icons.lock),
                     ),
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
+                      if (value == null || value.isEmpty) {
                         return 'Password cannot be empty';
                       }
                       if (value.trim().length < 6) {
@@ -122,7 +87,7 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Login Button
+                  // Login button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -131,16 +96,14 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
                           : () {
                               if (!_formKey.currentState!.validate()) return;
 
-                              ref
-                                  .read(authViewModelProvider.notifier)
-                                  .login(
+                              // Call ViewModel login, which handles snackbar + navigation
+                              ref.read(authViewModelProvider.notifier).login(
+                                    context: context,
                                     email: emailController.text.trim(),
                                     password: passwordController.text.trim(),
-                                    context: context,
                                   );
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
@@ -159,7 +122,6 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
                               "Login",
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -171,30 +133,24 @@ class _JerseyLoginScreenState extends ConsumerState<JerseyLoginScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Don't have an account? ",
-                        style: TextStyle(fontSize: 14),
-                      ),
+                      const Text("Don't have an account? "),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
+                          AppRoutes.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => const JerseySignupScreen(),
-                            ),
+                            const JerseySignupScreen(),
                           );
                         },
                         child: const Text(
                           "Sign Up",
                           style: TextStyle(
-                            fontSize: 14,
                             color: Colors.blue,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ],
-                  ),
+                  )
                 ],
               ),
             ),

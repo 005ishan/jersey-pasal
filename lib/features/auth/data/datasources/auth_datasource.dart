@@ -1,6 +1,7 @@
+import 'package:jerseypasal/features/auth/data/models/auth_api_model.dart';
 import 'package:jerseypasal/features/auth/data/models/auth_hive_model.dart';
 
-abstract interface class IAuthDatasource {
+abstract interface class IAuthLocalDatasource {
   Future<bool> register(AuthHiveModel model);
   Future<AuthHiveModel?> login(String email, String password);
   Future<AuthHiveModel?> getCurrentUser();
@@ -9,9 +10,16 @@ abstract interface class IAuthDatasource {
   //get email exists
   Future<bool> isEmailExists(String email);
   AuthHiveModel? getUserByEmail(String email);
+
   /// Reset password
   Future<bool> resetPassword({
     required String email,
     required String newPassword,
   });
+}
+
+abstract interface class IAuthRemoteDataSource {
+  Future<AuthApiModel> register(AuthApiModel user);
+  Future<AuthApiModel> login(String email, String password);
+  Future<AuthApiModel> getUserById(String authId);
 }
