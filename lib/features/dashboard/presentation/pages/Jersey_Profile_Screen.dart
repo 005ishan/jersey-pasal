@@ -10,7 +10,7 @@ class JerseyProfileScreen extends StatefulWidget {
 }
 
 class _JerseyProfileScreenState extends State<JerseyProfileScreen> {
-  String _userName = 'John Doe';
+  String _userName = 'Customer';
 
   void _updateUserName(String newName) {
     setState(() {
@@ -86,7 +86,7 @@ class _JerseyProfileScreenState extends State<JerseyProfileScreen> {
 
                   // User Email
                   const Text(
-                    'john@example.com',
+                    'customer@example.com',
                     style: TextStyle(
                       fontSize: 14,
                       color: Color(0xFFE3F2FD),
