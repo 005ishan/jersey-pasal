@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 
 class JerseyAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onCartTap;
+  final String customerName;
 
-  const JerseyAppBar({super.key, this.onCartTap});
+  const JerseyAppBar({
+    super.key,
+    this.onCartTap,
+    this.customerName = 'Customer',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +28,15 @@ class JerseyAppBar extends StatelessWidget implements PreferredSizeWidget {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'Welcome',
                     style: TextStyle(fontSize: 14, color: Colors.white70),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Customer',
-                    style: TextStyle(
+                    customerName,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

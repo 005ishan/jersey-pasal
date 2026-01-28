@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jerseypasal/app/routes/app_routes.dart';
 import 'package:jerseypasal/core/services/storage/user_session_service.dart';
-import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Home_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/widgets/DashboardLayout.dart';
 import '../../../onboarding/presentation/pages/Jersey_Onboarding1_Screen.dart';
 
 class JerseySplashScreen extends ConsumerStatefulWidget {
@@ -30,7 +30,7 @@ class _JerseySplashScreenState extends ConsumerState<JerseySplashScreen> {
     final isLoggedIn = userSessionService.isLoggedIn();
 
     if (isLoggedIn) {
-      AppRoutes.pushReplacement(context, const JerseyHomeScreen());
+      AppRoutes.pushReplacement(context, const DashboardLayout());
     } else {
       AppRoutes.pushReplacement(context, const JerseyOnboarding1Screen());
     }
