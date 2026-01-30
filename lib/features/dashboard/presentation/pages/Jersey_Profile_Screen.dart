@@ -1,16 +1,25 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:jerseypasal/core/services/storage/user_session_service.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
+import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/providers/profile_provider.dart';
 import 'package:jerseypasal/features/dashboard/presentation/widgets/account_settings_dialog.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class JerseyProfileScreen extends StatefulWidget {
+class JerseyProfileScreen extends ConsumerStatefulWidget {
   const JerseyProfileScreen({super.key});
 
   @override
-  State<JerseyProfileScreen> createState() => _JerseyProfileScreenState();
+  ConsumerState<JerseyProfileScreen> createState() =>
+      _JerseyProfileScreenState();
 }
 
-class _JerseyProfileScreenState extends State<JerseyProfileScreen> {
+class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
   String _userName = 'Customer';
+  String? _profileUrl;
 
   void _updateUserName(String newName) {
     setState(() {
@@ -28,8 +37,220 @@ class _JerseyProfileScreenState extends State<JerseyProfileScreen> {
     );
   }
 
+  final List<XFile> _selectedMedia = []; //images . video
+  final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePicture(); // ✅ Load saved profile pic
+  }
+
+  Future<void> _loadProfilePicture() async {
+    final userSession = ref.read(userSessionServiceProvider);
+    setState(() {
+      _profileUrl = userSession.getUserProfileImage();
+    });
+  }
+
+  Future<bool> _requestMediaPermission(Permission permission) async {
+    final status = await permission.request();
+    if (status.isGranted) {
+      return true;
+    } else {
+      final result = await permission.request();
+      return result.isGranted;
+    }
+  }
+
+  //code for gallery
+  Future<void> _pickFromGallery() async {
+    final hasPermission = await _requestMediaPermission(Permission.photos);
+    if (!hasPermission) {
+      _showPermissionDeniedDialog();
+      return;
+    }
+
+    final XFile? photo = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
+    if (photo != null) {
+      setState(() {
+        _selectedMedia.clear();
+        _selectedMedia.add(photo);
+      });
+      // Upload the photo immediately
+      await _uploadProfilePicture(photo);
+    }
+  }
+
+  //code for camera
+  Future<void> _pickFromCamera() async {
+    final hasPermission = await _requestMediaPermission(Permission.camera);
+    if (!hasPermission) {
+      _showPermissionDeniedDialog();
+      return;
+    }
+
+    final XFile? photo = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+    if (photo != null) {
+      setState(() {
+        _selectedMedia.clear();
+        _selectedMedia.add(photo);
+      });
+      // Upload the photo immediately
+      await _uploadProfilePicture(photo);
+    }
+  }
+
+  // Upload profile picture to backend
+  Future<void> _uploadProfilePicture(XFile imageFile) async {
+    // Show loading indicator
+    _showUploadDialog();
+
+    try {
+      final profileRepository = ref.read(profileRepositoryProvider);
+
+      // 1️⃣ Upload to backend
+      final uploadedImageUrl = await profileRepository.uploadProfilePicture(
+        imageFile: imageFile,
+        onProgress: (sent, total) {},
+      );
+
+      // 2️⃣ Save the returned URL to local session
+      final userSession = ref.read(userSessionServiceProvider);
+      final userId = userSession.getUserId();
+      if (userId != null) {
+        await userSession.saveUserSession(
+          userId: userId,
+          email: userSession.getUserEmail() ?? '',
+          profilePicture: uploadedImageUrl, // <-- save full URL here
+        );
+      }
+
+      // 3️⃣ Close loading dialog
+      if (mounted) {
+        Navigator.pop(context);
+        _showSuccessDialog('Profile picture updated successfully!');
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        String errorMsg = e.toString().replaceAll('Exception: ', '');
+        _showErrorDialog(
+          errorMsg.isNotEmpty ? errorMsg : 'Failed to upload image',
+        );
+      }
+    }
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Permission Required"),
+        content: const Text(
+          "This app needs permission to access your media files.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showUploadDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            const Text("Uploading profile picture..."),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Success"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Choose Photo Source"),
+        content: const Text("Select where you want to pick the photo from"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickFromGallery();
+            },
+            child: const Text("Gallery"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickFromCamera();
+            },
+            child: const Text("Camera"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final profileUrl = ref
+        .read(userSessionServiceProvider)
+        .getUserProfileImage();
+
     return Scaffold(
       appBar: JerseyAppBar(),
       body: SingleChildScrollView(
@@ -50,25 +271,66 @@ class _JerseyProfileScreenState extends State<JerseyProfileScreen> {
               child: Column(
                 children: [
                   // Circular Profile Photo with Border
-                  Container(
-                    width: 160,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.25),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.person,
-                      size: 80,
-                      color: const Color(0xFF1877F2),
+                  GestureDetector(
+                    onTap: _showImageSourceDialog,
+                    child: Container(
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          ClipOval(
+                            child: (profileUrl != null && profileUrl.isNotEmpty)
+                                ? Image.network(
+                                    _profileUrl!,
+                                    fit: BoxFit.cover,
+                                    width: 160,
+                                    height: 160,
+                                  )
+                                : Icon(
+                                    Icons.person,
+                                    size: 80,
+                                    color: const Color(0xFF1877F2),
+                                  ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF1877F2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -358,10 +620,34 @@ class _JerseyProfileScreenState extends State<JerseyProfileScreen> {
                       ),
                       elevation: 0,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
+                      // 1️⃣ Clear auth data (token, user data)
+                      final profileRepository = ref.read(
+                        profileRepositoryProvider,
+                      );
+                      await profileRepository
+                          .logout(); // or clear token manually
+
+                      // 2️⃣ Clear local session including profile picture
+                      final userSession = ref.read(userSessionServiceProvider);
+                      await userSession.clearSession();
+                      setState(() {
+                        _profileUrl = null; // Reset local profile picture
+                      });
+
+                      // 3️⃣ Close dialog
                       Navigator.pop(context);
-                      // Perform logout action here
+
+                      // 4️⃣ Navigate to Login & clear stack
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const JerseyLoginScreen(),
+                        ),
+                        (route) => false,
+                      );
                     },
+
                     child: const Text(
                       'Logout',
                       style: TextStyle(

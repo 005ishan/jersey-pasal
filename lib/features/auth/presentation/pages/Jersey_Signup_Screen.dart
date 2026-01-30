@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jerseypasal/app/routes/app_routes.dart';
-import 'package:jerseypasal/core/utils/snackbar_utils.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
 import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';

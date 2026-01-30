@@ -2,7 +2,7 @@
   import 'package:dio_smart_retry/dio_smart_retry.dart';
   import 'package:flutter/foundation.dart';
   import 'package:flutter_riverpod/flutter_riverpod.dart';
-  import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+  import 'package:shared_preferences/shared_preferences.dart';
   import 'package:jerseypasal/core/api/api_endpoints.dart';
   import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -21,8 +21,8 @@
           connectTimeout: ApiEndpoints.connectionTimeout,
           receiveTimeout: ApiEndpoints.receiveTimeout,
           headers: {
-            'Content-Type': 'application/json',
             'Accept': 'application/json',
+            // Don't set Content-Type here - let it be set by request type
           },
         ),
       );
@@ -83,6 +83,14 @@
       Map<String, dynamic>? queryParameters,
       Options? options,
     }) async {
+      // Set Content-Type to JSON if not already set
+      options ??= Options();
+      options.headers ??= {};
+      if (!(options.headers!.containsKey('Content-Type') || 
+            options.contentType != null)) {
+        options.contentType = 'application/json';
+      }
+      
       return _dio.post(
         path,
         data: data,
@@ -139,7 +147,6 @@
 
   // Auth Interceptor to add JWT token to requests
   class _AuthInterceptor extends Interceptor {
-    final _storage = const FlutterSecureStorage();
     static const String _tokenKey = 'auth_token';
 
     @override
@@ -163,10 +170,32 @@
           options.path == ApiEndpoints.login || options.path == ApiEndpoints.register;
 
       if (!isPublicGet && !isAuthEndpoint) {
-        final token = await _storage.read(key: _tokenKey);
-        if (token != null) {
+        // Read token from SharedPreferences (saved by UserSessionService during login)
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString(_tokenKey);
+        
+        print('═' * 80);
+        print('🔐 AuthInterceptor.onRequest()');
+        print('Path: ${options.path}');
+        print('Method: ${options.method}');
+        print('Is public GET: $isPublicGet');
+        print('Is auth endpoint: $isAuthEndpoint');
+        
+        if (token != null && token.isNotEmpty) {
+          print('✅ Token found in SharedPreferences');
+          print('Token preview: ${token.substring(0, 30)}...');
+          print('Token length: ${token.length}');
+          
+          // Add token to headers
           options.headers['Authorization'] = 'Bearer $token';
+          print('✅ Authorization header set: Bearer ${token.substring(0, 30)}...');
+          
+          // Log current headers
+          print('Current headers: ${options.headers}');
+        } else {
+          print('❌ No token found in SharedPreferences!');
         }
+        print('═' * 80);
       }
 
       handler.next(options);
@@ -176,8 +205,9 @@
     void onError(DioException err, ErrorInterceptorHandler handler) {
       // Handle 401 Unauthorized - token expired
       if (err.response?.statusCode == 401) {
-        _storage.delete(key: _tokenKey);
-        // Optional: Add callback to redirect to login
+        print('⚠️ 401 Unauthorized - token is invalid or expired');
+        print('Response: ${err.response?.data}');
+        // Token might be expired, could clear it here
       }
       handler.next(err);
     }
