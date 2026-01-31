@@ -26,7 +26,7 @@ class ProfileRepository {
       throw Exception('User ID not found. Please login again.');
     }
 
-    // 🔐 Token check (async — SecureStorage)
+    // Token check (async — SecureStorage)
     final token = await _userSessionService.getAuthToken();
     print('🔐 Auth Token exists: ${token != null}');
 
@@ -67,7 +67,7 @@ class ProfileRepository {
       if (response.statusCode != null &&
           response.statusCode! >= 200 &&
           response.statusCode! < 300) {
-        // ✅ Extract image URL
+        // Extract image URL
         final data = response.data;
         String? photoUrl;
 
@@ -81,7 +81,7 @@ class ProfileRepository {
               data['url'];
         }
 
-        // ✅ Update local session
+        // Update local session
         await _userSessionService.saveUserSession(
           userId: userId,
           email: _userSessionService.getUserEmail() ?? '',

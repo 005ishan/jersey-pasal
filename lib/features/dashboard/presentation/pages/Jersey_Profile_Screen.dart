@@ -43,7 +43,7 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProfilePicture(); // ✅ Load saved profile pic
+    _loadProfilePicture(); // Load saved profile pic
   }
 
   Future<void> _loadProfilePicture() async {
