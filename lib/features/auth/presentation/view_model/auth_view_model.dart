@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jerseypasal/app/routes/app_routes.dart';
+import 'package:jerseypasal/core/widgets/JerseyBottonNavigation.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
@@ -9,8 +10,6 @@ import 'package:jerseypasal/features/auth/domain/usecases/reset_password_usecase
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
-import 'package:dartz/dartz.dart';
-import 'package:jerseypasal/core/error/failures.dart';
 import 'package:jerseypasal/features/dashboard/presentation/pages/Jersey_Home_Screen.dart';
 
 // Provider
@@ -43,10 +42,7 @@ class AuthViewModel extends Notifier<AuthState> {
   }) async {
     state = state.copyWith(status: AuthStatus.loading, errorMessage: null);
 
-    final params = RegisterUsecaseParams(
-      email: email,
-      password: password,
-    );
+    final params = RegisterUsecaseParams(email: email, password: password);
 
     final result = await _registerUsecase.call(params);
 
@@ -113,7 +109,7 @@ class AuthViewModel extends Notifier<AuthState> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           AppRoutes.pushReplacement(
             context,
-            const JerseyHomeScreen(), // <-- Your home screen
+            const JerseyBottomNavigation(), 
           );
         });
       },
