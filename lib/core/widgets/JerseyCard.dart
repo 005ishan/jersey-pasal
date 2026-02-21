@@ -4,94 +4,67 @@ class JerseyCard extends StatelessWidget {
   final String imagePath;
   final String name;
   final String price;
+  final VoidCallback? onAddToCart;
+  final VoidCallback? onAddToWishlist;
 
   const JerseyCard({
     super.key,
     required this.imagePath,
     required this.name,
     required this.price,
+    this.onAddToCart,
+    this.onAddToWishlist,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 160,
-      height: 260, 
-      decoration: BoxDecoration(
-        color: const Color(0xFF293241),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // prevent overflow
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.asset(
+                imagePath,
+                width: double.infinity,
+                height: 120,
+                fit: BoxFit.cover,
+              ),
             ),
-            child: Image.asset(
-              imagePath,
-              width: 160,
-              height: 170, 
-              fit: BoxFit.cover,
-            ),
-          ),
-
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(price),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'OpenSansBold',
-                            fontWeight: FontWeight.w700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.favorite_border),
+                        onPressed: onAddToWishlist,
+                        iconSize: 20,
                       ),
                       IconButton(
-                        onPressed: () {
-
-                        },
-                        icon: const Icon(
-                          Icons.favorite_border,
-                          color: Colors.redAccent,
-                          size: 20,
-                        ),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.shopping_cart),
+                        onPressed: onAddToCart,
+                        iconSize: 20,
                       ),
                     ],
-                  ),
-                  Text(
-                    price,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontFamily: 'OpenSansRegular',
-                      fontWeight: FontWeight.w400,
-                    ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

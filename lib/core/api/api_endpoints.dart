@@ -4,7 +4,7 @@ class ApiEndpoints {
   // Base URL - change this for production
   // static const String baseUrl = 'http://10.0.2.2:3000/api/v1';
   static const String baseUrl = 'http://192.168.137.1:3000/api/v1';
-  // For Android Emulator use: 'http://10.0.2.2:3000/api/v1' 
+  // For Android Emulator use: 'http://10.0.2.2:3000/api/v1'
   // For iOS Simulator use: 'http://localhost:5000/api/v1'
   // For Physical Device use your computer's IP: 'http://192.168.x.x:5000/api/v1'
 
@@ -19,10 +19,18 @@ class ApiEndpoints {
   static String userProfilePicture(String id) => '/users/$id/profile-picture';
   static String updateUserProfile(String id) => '/users/$id/update';
 
-  // ============ Product / Item Endpoints ============
-  static const String products = '/products';
-  static String productById(String id) => '/products/$id';
-  static String productClaim(String id) => '/products/$id/claim'; // optional
+ // ============ Jersey / Product Endpoints ============
+  static const String jerseys = '/jerseys';
+  static String jerseyById(String id) => '/jerseys/$id';
+
+  // ============ Cart Endpoints ============
+  static const String cart = '/cart';
+  static const String addToCart = '/cart/add';
+  static const String removeFromCart = '/cart/remove';
+
+  // ============ Wishlist Endpoints ============
+  static const String wishlist = '/wishlist';
+  static const String toggleWishlist = '/wishlist/toggle';
 
   // ============ Category Endpoints ============
   static const String categories = '/categories';

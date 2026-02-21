@@ -159,7 +159,7 @@
         ApiEndpoints.login, // users/login
         ApiEndpoints.register, // registration
         ApiEndpoints.categories,
-        ApiEndpoints.products,
+        ApiEndpoints.jerseys,
       ];
 
       final isPublicGet =
