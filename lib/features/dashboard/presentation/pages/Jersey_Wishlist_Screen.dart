@@ -1,9 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jerseypasal/core/api/api_endpoints.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
-
+import 'package:shimmer/shimmer.dart';
 
 class JerseyWishlistScreen extends StatefulWidget {
   const JerseyWishlistScreen({Key? key}) : super(key: key);
@@ -77,6 +78,31 @@ class _JerseyWishlistScreenState extends State<JerseyWishlistScreen> {
     }
   }
 
+  /// ---------------- SHIMMER GRID ----------------
+  Widget buildShimmerGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.65,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: 6,
+      itemBuilder: (_, __) => Shimmer.fromColors(
+        baseColor: Colors.grey.shade200,
+        highlightColor: Colors.grey.shade100,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Wishlist Card UI
   Widget buildWishlistCard(dynamic item) {
     return Card(
@@ -85,13 +111,18 @@ class _JerseyWishlistScreenState extends State<JerseyWishlistScreen> {
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          /// Image
+          /// ⭐ CachedNetworkImage with shimmer placeholder
           Positioned.fill(
-            child: Image.network(
-              buildImageUrl(item['imageUrl']),
+            child: CachedNetworkImage(
+              imageUrl: buildImageUrl(item['imageUrl']),
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.broken_image, size: 50),
+              placeholder: (context, url) => Shimmer.fromColors(
+                baseColor: Colors.grey.shade200,
+                highlightColor: Colors.grey.shade100,
+                child: Container(color: Colors.white),
+              ),
+              errorWidget: (context, url, error) =>
+                  const Center(child: Icon(Icons.broken_image, size: 50)),
             ),
           ),
 
@@ -127,7 +158,7 @@ class _JerseyWishlistScreenState extends State<JerseyWishlistScreen> {
                 ),
 
                 Text(
-                  "\$${item['price'] ?? 0}",
+                  "\Rs${item['price'] ?? 0}",
                   style: const TextStyle(color: Colors.white70),
                 ),
               ],
@@ -173,7 +204,7 @@ class _JerseyWishlistScreenState extends State<JerseyWishlistScreen> {
           /// Content Area
           Expanded(
             child: loading
-                ? const Center(child: CircularProgressIndicator())
+                ? buildShimmerGrid() // ⭐ shimmer instead of CircularProgressIndicator
                 : wishlistItems.isEmpty
                 ? const Center(
                     child: Text(

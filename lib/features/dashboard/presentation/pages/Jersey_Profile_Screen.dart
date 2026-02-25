@@ -18,6 +18,7 @@ class JerseyProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
+  String? _email;
   String _userName = 'Customer';
   String? _profileUrl;
 
@@ -44,6 +45,23 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
   void initState() {
     super.initState();
     _loadProfilePicture(); // Load saved profile pic
+    _loadUserEmail();
+  }
+
+  Future<void> _loadUserEmail() async {
+    final session = ref.read(userSessionServiceProvider);
+
+    final email = session.getUserEmail();
+    final username = email != null && email.contains('@')
+        ? email.split('@')[0]
+        : 'Customer';
+
+    if (mounted) {
+      setState(() {
+        _email = email;
+        _userName = username;
+      });
+    }
   }
 
   Future<void> _loadProfilePicture() async {
@@ -260,13 +278,17 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
             // Blue Gradient Header with Profile
             Container(
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [const Color(0xFF1877F2), Colors.blue.shade300],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF1877F2), // Primary Blue (AppBar Match)
+                    Color(0xFF1E3A8A), // Deep Indigo Shade
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
+
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Column(
                 children: [
@@ -347,9 +369,9 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
                   const SizedBox(height: 8),
 
                   // User Email
-                  const Text(
-                    'customer@example.com',
-                    style: TextStyle(
+                  Text(
+                    _email ?? '',
+                    style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFFE3F2FD),
                       fontWeight: FontWeight.w500,

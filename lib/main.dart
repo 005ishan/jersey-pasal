@@ -4,6 +4,7 @@ import 'package:jerseypasal/app/theme/JerseyApp.dart';
 import 'package:jerseypasal/core/services/hive/hive_service.dart';
 import 'package:jerseypasal/core/services/storage/user_session_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

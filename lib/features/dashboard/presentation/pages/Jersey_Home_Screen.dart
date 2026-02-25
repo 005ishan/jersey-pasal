@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:jerseypasal/core/api/api_endpoints.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
+import 'package:shimmer/shimmer.dart';
 
 class JerseyHomeScreen extends StatefulWidget {
   const JerseyHomeScreen({Key? key}) : super(key: key);
@@ -44,7 +46,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
       setState(() => items = res.data['items'] ?? []);
     } catch (e) {
       debugPrint("Fetch error: $e");
-      SnackbarUtils.showError(context, "Failed to add to cart");
+      SnackbarUtils.showError(context, "Failed to load jerseys");
     } finally {
       setState(() => loading = false);
     }
@@ -63,17 +65,216 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
         .toList();
   }
 
+  /// ---------------- QUANTITY BOTTOM SHEET ----------------
+  void showAddToCartSheet(dynamic item) {
+    int quantity = 1;
+    final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Handle bar
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+
+                  /// Product name
+                  Text(
+                    item['name'] ?? '',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    "Rs${price.toStringAsFixed(2)} per item",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.green.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// Quantity selector row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Quantity",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          /// Decrease button
+                          _qtyButton(
+                            icon: Icons.remove,
+                            onPressed: quantity > 1
+                                ? () => setSheetState(() => quantity--)
+                                : null,
+                          ),
+
+                          /// Quantity display
+                          Container(
+                            width: 48,
+                            alignment: Alignment.center,
+                            child: Text(
+                              '$quantity',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+
+                          /// Increase button
+                          _qtyButton(
+                            icon: Icons.add,
+                            onPressed: () => setSheetState(() => quantity++),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  /// Total price
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          "Rs${(price * quantity).toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// Confirm Add to Cart
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      label: const Text(
+                        "Add to Cart",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        addToCart(item['_id'], quantity);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _qtyButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: onPressed == null
+            ? Colors.grey.shade200
+            : Colors.blueAccent.withOpacity(0.1),
+      ),
+      child: IconButton(
+        icon: Icon(
+          icon,
+          size: 20,
+          color: onPressed == null ? Colors.grey : Colors.blueAccent,
+        ),
+        onPressed: onPressed,
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
   /// ---------------- CART ----------------
-  void addToCart(String productId) async {
+  void addToCart(String productId, int quantity) async {
     try {
       final res = await dio.post(
         ApiEndpoints.addToCart,
-        data: {'userId': testUserId, 'productId': productId, 'quantity': 1},
+        data: {
+          'userId': testUserId,
+          'productId': productId,
+          'quantity': quantity,
+        },
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
       if (res.data['success'] == true) {
-        SnackbarUtils.showSuccess(context, "Added to Cart");
+        SnackbarUtils.showSuccess(context, "Added $quantity item(s) to Cart");
       } else {
         throw Exception(res.data['message']);
       }
@@ -93,13 +294,36 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
 
       if (res.data['success'] == true) {
         SnackbarUtils.showSuccess(context, "Wishlist Updated");
-
-        /// ⭐ Refresh product list UI
         setState(() {});
       }
     } catch (e) {
       debugPrint("Wishlist toggle error: $e");
     }
+  }
+
+  /// ---------------- SHIMMER GRID ----------------
+  Widget buildShimmerGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(14),
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.62,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+      ),
+      itemCount: 6,
+      itemBuilder: (_, __) => Shimmer.fromColors(
+        baseColor: Colors.grey.shade200,
+        highlightColor: Colors.grey.shade100,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+          ),
+        ),
+      ),
+    );
   }
 
   /// ---------------- CARD WIDGET ----------------
@@ -123,11 +347,17 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
               children: [
                 Container(
                   decoration: BoxDecoration(color: Colors.grey.shade200),
-                  child: Image.network(
-                    imageUrl,
+                  // ⭐ CachedNetworkImage with shimmer placeholder
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) =>
+                    placeholder: (context, url) => Shimmer.fromColors(
+                      baseColor: Colors.grey.shade200,
+                      highlightColor: Colors.grey.shade100,
+                      child: Container(color: Colors.white),
+                    ),
+                    errorWidget: (context, url, error) =>
                         const Center(child: Icon(Icons.broken_image, size: 50)),
                   ),
                 ),
@@ -172,7 +402,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                 const SizedBox(height: 4),
 
                 Text(
-                  "\$${item['price'] ?? '0'}",
+                  "Rs${item['price'] ?? '0'}",
                   style: TextStyle(
                     color: Colors.green.shade700,
                     fontWeight: FontWeight.bold,
@@ -189,7 +419,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () => addToCart(item['_id']),
+                  onPressed: () => showAddToCartSheet(item),
                   child: const Text("Add to Cart"),
                 ),
               ],
@@ -222,8 +452,45 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
   /// ---------------- BUILD ----------------
   @override
   Widget build(BuildContext context) {
+    // ⭐ Shimmer loading screen — keeps the AppBar and TabBar visible
     if (loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        appBar: const JerseyAppBar(),
+        body: Column(
+          children: [
+            Material(
+              elevation: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blueAccent, Colors.indigo],
+                  ),
+                ),
+                child: SafeArea(
+                  bottom: false,
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: Colors.white,
+                    indicatorWeight: 3,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white70,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    tabs: const [
+                      Tab(text: "Club Jerseys"),
+                      Tab(text: "Country Jerseys"),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Expanded(child: buildShimmerGrid()),
+          ],
+        ),
+      );
     }
 
     return Scaffold(
@@ -231,8 +498,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
 
       body: Column(
         children: [
-          /// Gradient Tab Header
-          /// Gradient Tab Header (Fix Visibility Issue)
           Material(
             elevation: 4,
             child: Container(
@@ -263,7 +528,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
             ),
           ),
 
-          /// Tab Content
           Expanded(
             child: TabBarView(
               controller: _tabController,

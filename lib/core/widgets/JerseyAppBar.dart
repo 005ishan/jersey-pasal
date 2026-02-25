@@ -1,12 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jerseypasal/core/services/storage/user_session_service.dart';
 
-class JerseyAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String customerName;
+class JerseyAppBar extends ConsumerWidget implements PreferredSizeWidget {
+  final String? customerName;
 
-  const JerseyAppBar({super.key, this.customerName = 'Customer'});
+  const JerseyAppBar({super.key, this.customerName});
+
+  /// Time based greeting with emoji
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+
+    if (hour < 12) return "Good Morning 🌅";
+    if (hour < 17) return " Good Afternoon ☀️";
+    if (hour < 21) return "Good Evening 🌇";
+    return "Good Night 🌙";
+  }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.read(userSessionServiceProvider);
+
+    final email = session.getUserEmail();
+
+    final displayName = customerName ??
+        (email != null && email.contains('@')
+            ? email.split('@')[0]
+            : "Customer");
+
+    final greeting = _getGreeting();
+
     return AppBar(
       automaticallyImplyLeading: false,
       elevation: 2,
@@ -25,32 +48,27 @@ class JerseyAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                /// Welcome Text Section
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Welcome Back",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    ),
+                Text(
+                  greeting,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                ),
 
-                    const SizedBox(height: 6),
+                const SizedBox(height: 6),
 
-                    Text(
-                      customerName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
