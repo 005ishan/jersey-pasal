@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -22,10 +21,11 @@ class JerseyHomeScreen extends StatefulWidget {
 
 class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     with SingleTickerProviderStateMixin {
+  // ─── State ──────────────────────────────────────────────────────────────────
   List<dynamic> items = [];
   bool loading = true;
-
   late TabController _tabController;
+  late Box<JerseyHiveModel> _jerseyBox;
 
   final String testUserId = "696858e56184236c74bbf2b9";
 
@@ -37,21 +37,114 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     ),
   );
 
+  // ─── Sensor State ───────────────────────────────────────────────────────────
+  StreamSubscription? _accelerometerSubscription;
+  StreamSubscription? _gyroscopeSubscription;
+  DateTime? _lastShakeTime;
+  DateTime? _lastTiltTime;
+
+  // ─── Init ───────────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
+    _jerseyBox = Hive.box<JerseyHiveModel>(HiveTableConstant.jerseyTable);
     _tabController = TabController(length: 2, vsync: this);
     fetchItems();
     _startShakeDetection();
+    _startGyroscope();
   }
 
-  /// ---------------- FETCH ITEMS ----------------
-  final Box<JerseyHiveModel> _jerseyBox = Hive.box<JerseyHiveModel>(
-    HiveTableConstant.jerseyTable,
-  );
+  // ─── Dispose ────────────────────────────────────────────────────────────────
+  @override
+  void dispose() {
+    _accelerometerSubscription?.cancel();
+    _gyroscopeSubscription?.cancel();
+    _tabController.dispose();
+    super.dispose();
+  }
 
+  // ─── SHAKE DETECTION (Accelerometer) ────────────────────────────────────────
+  void _startShakeDetection() {
+    _accelerometerSubscription = accelerometerEventStream().listen((event) {
+      final magnitude = sqrt(
+        event.x * event.x + event.y * event.y + event.z * event.z,
+      );
+
+      if (magnitude > 20) {
+        final now = DateTime.now();
+        if (_lastShakeTime == null ||
+            now.difference(_lastShakeTime!) > const Duration(seconds: 2)) {
+          _lastShakeTime = now;
+          _onShakeDetected();
+        }
+      }
+    });
+  }
+
+  void _onShakeDetected() {
+    debugPrint('📳 Shake detected! Refreshing jerseys...');
+    SnackbarUtils.showSuccess(context, "🔄 Refreshing jerseys...");
+    _shakeRefresh();
+  }
+
+  void _shakeRefresh() async {
+    setState(() {
+      items = [];
+      loading = true;
+    });
+
+    try {
+      final res = await dio.get(ApiEndpoints.jerseys);
+      final freshItems = res.data['items'] as List? ?? [];
+
+      await _jerseyBox.clear();
+      for (var item in freshItems) {
+        final model = JerseyHiveModel.fromJson(item);
+        await _jerseyBox.put(model.id, model);
+      }
+
+      setState(() => items = freshItems);
+    } catch (e) {
+      debugPrint("Shake refresh error: $e");
+      final cached = _jerseyBox.values.toList();
+      setState(() => items = cached.map((e) => e.toJson()).toList());
+      SnackbarUtils.showError(context, "Failed to refresh");
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
+  // ─── GYROSCOPE (Tilt to Switch Tabs) ────────────────────────────────────────
+  void _startGyroscope() {
+    _gyroscopeSubscription = gyroscopeEventStream().listen((event) {
+      final now = DateTime.now();
+      // Debounce tilt — prevent rapid tab switching
+      if (_lastTiltTime != null &&
+          now.difference(_lastTiltTime!) < const Duration(milliseconds: 800)) {
+        return;
+      }
+
+      if (event.y > 2.5) {
+        // Tilting right → Country Jerseys (tab 1)
+        if (_tabController.index != 1) {
+          _lastTiltTime = now;
+          _tabController.animateTo(1);
+          debugPrint('📱 Tilted right → Country Jerseys');
+        }
+      } else if (event.y < -2.5) {
+        // Tilting left → Club Jerseys (tab 0)
+        if (_tabController.index != 0) {
+          _lastTiltTime = now;
+          _tabController.animateTo(0);
+          debugPrint('📱 Tilted left → Club Jerseys');
+        }
+      }
+    });
+  }
+
+  // ─── FETCH ITEMS ────────────────────────────────────────────────────────────
   void fetchItems() async {
-    // ─── Show cache instantly ───
+    // Show cache instantly
     final cached = _jerseyBox.values.toList();
     if (cached.isNotEmpty) {
       setState(() {
@@ -62,12 +155,11 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
       setState(() => loading = true);
     }
 
-    // ─── Fetch fresh from backend ───
+    // Fetch fresh from backend
     try {
       final res = await dio.get(ApiEndpoints.jerseys);
       final freshItems = res.data['items'] as List? ?? [];
 
-      // Cache in Hive
       await _jerseyBox.clear();
       for (var item in freshItems) {
         final model = JerseyHiveModel.fromJson(item);
@@ -80,94 +172,62 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
       if (items.isEmpty) {
         SnackbarUtils.showError(context, "Failed to load jerseys");
       }
-      // ─── Keep showing cached data if network fails ───
     } finally {
       setState(() => loading = false);
     }
   }
 
-  /// ---------------- FILTER ITEMS ----------------
-  List<dynamic> getClubItems() {
-    return items
-        .where((e) => e['itemType']?.toString().toLowerCase() == 'club')
-        .toList();
-  }
+  // ─── FILTER ─────────────────────────────────────────────────────────────────
+  List<dynamic> getClubItems() => items
+      .where((e) => e['itemType']?.toString().toLowerCase() == 'club')
+      .toList();
 
-  List<dynamic> getCountryItems() {
-    return items
-        .where((e) => e['itemType']?.toString().toLowerCase() == 'country')
-        .toList();
-  }
+  List<dynamic> getCountryItems() => items
+      .where((e) => e['itemType']?.toString().toLowerCase() == 'country')
+      .toList();
 
-  ///----------------Accelerometer (Shake to Refresh)----------------
-  StreamSubscription? _accelerometerSubscription;
-  DateTime? _lastShakeTime;
-
-  // ─── Shake Detection ────────────────────────────────────────────
-  void _startShakeDetection() {
-    _accelerometerSubscription = accelerometerEventStream().listen((event) {
-      double magnitude = sqrt(
-        event.x * event.x + event.y * event.y + event.z * event.z,
+  // ─── ADD TO CART ────────────────────────────────────────────────────────────
+  void addToCart(String productId, int quantity) async {
+    try {
+      final res = await dio.post(
+        ApiEndpoints.addToCart,
+        data: {
+          'userId': testUserId,
+          'productId': productId,
+          'quantity': quantity,
+        },
+        options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
-      // Gravity is ~9.8, so anything above 20 is a shake
-      if (magnitude > 20) {
-        final now = DateTime.now();
-        // Prevent multiple triggers — wait 2 seconds between shakes
-        if (_lastShakeTime == null ||
-            now.difference(_lastShakeTime!) > const Duration(seconds: 2)) {
-          _lastShakeTime = now;
-          _onShakeDetected();
-        }
+      if (res.data['success'] == true) {
+        SnackbarUtils.showSuccess(context, "Added $quantity item(s) to Cart");
+      } else {
+        throw Exception(res.data['message']);
       }
-    });
-  }
-
-  void _onShakeDetected() {
-    debugPrint('📳 Shake detected! Refreshing jerseys...');
-    SnackbarUtils.showSuccess(context, "Refreshing jerseys...");
-    _shakeRefresh(); // ← separate method for shake refresh
-  }
-
-  // ─── Shake Refresh (forces shimmer) ────────────────────────────
-  void _shakeRefresh() async {
-    // Force shimmer to show
-    setState(() {
-      items = [];
-      loading = true;
-    });
-
-    try {
-      final res = await dio.get(ApiEndpoints.jerseys);
-      final freshItems = res.data['items'] as List? ?? [];
-
-      // Update Hive cache
-      await _jerseyBox.clear();
-      for (var item in freshItems) {
-        final model = JerseyHiveModel.fromJson(item);
-        await _jerseyBox.put(model.id, model);
-      }
-
-      setState(() => items = freshItems);
     } catch (e) {
-      debugPrint("Shake refresh error: $e");
-      // Restore from cache if network fails
-      final cached = _jerseyBox.values.toList();
-      setState(() => items = cached.map((e) => e.toJson()).toList());
-      SnackbarUtils.showError(context, "Failed to refresh");
-    } finally {
-      setState(() => loading = false);
+      SnackbarUtils.showError(context, "Failed to add to cart");
     }
   }
 
-  @override
-  void dispose() {
-    _accelerometerSubscription?.cancel();
-    _tabController.dispose();
-    super.dispose();
+  // ─── WISHLIST ───────────────────────────────────────────────────────────────
+  void toggleWishlist(String productId) async {
+    try {
+      final res = await dio.post(
+        ApiEndpoints.toggleWishlist,
+        data: {"userId": testUserId, "productId": productId},
+        options: Options(headers: {"Content-Type": "application/json"}),
+      );
+
+      if (res.data['success'] == true) {
+        SnackbarUtils.showSuccess(context, "Wishlist Updated");
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint("Wishlist toggle error: $e");
+    }
   }
 
-  /// ---------------- QUANTITY BOTTOM SHEET ----------------
+  // ─── BOTTOM SHEET ───────────────────────────────────────────────────────────
   void showAddToCartSheet(dynamic item) {
     int quantity = 1;
     final price = (item['price'] as num?)?.toDouble() ?? 0.0;
@@ -189,7 +249,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// Handle bar
                   Center(
                     child: Container(
                       width: 40,
@@ -201,8 +260,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       ),
                     ),
                   ),
-
-                  /// Product name
                   Text(
                     item['name'] ?? '',
                     style: const TextStyle(
@@ -210,9 +267,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 6),
-
                   Text(
                     "Rs${price.toStringAsFixed(2)} per item",
                     style: TextStyle(
@@ -221,10 +276,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  /// Quantity selector row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -237,15 +289,12 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       ),
                       Row(
                         children: [
-                          /// Decrease button
                           _qtyButton(
                             icon: Icons.remove,
                             onPressed: quantity > 1
                                 ? () => setSheetState(() => quantity--)
                                 : null,
                           ),
-
-                          /// Quantity display
                           Container(
                             width: 48,
                             alignment: Alignment.center,
@@ -257,8 +306,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                               ),
                             ),
                           ),
-
-                          /// Increase button
                           _qtyButton(
                             icon: Icons.add,
                             onPressed: () => setSheetState(() => quantity++),
@@ -267,10 +314,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 20),
-
-                  /// Total price
                   Container(
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
@@ -301,10 +345,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  /// Confirm Add to Cart
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -362,48 +403,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     );
   }
 
-  /// ---------------- CART ----------------
-  void addToCart(String productId, int quantity) async {
-    try {
-      final res = await dio.post(
-        ApiEndpoints.addToCart,
-        data: {
-          'userId': testUserId,
-          'productId': productId,
-          'quantity': quantity,
-        },
-        options: Options(headers: {'Content-Type': 'application/json'}),
-      );
-
-      if (res.data['success'] == true) {
-        SnackbarUtils.showSuccess(context, "Added $quantity item(s) to Cart");
-      } else {
-        throw Exception(res.data['message']);
-      }
-    } catch (e) {
-      SnackbarUtils.showError(context, "Failed to add to cart");
-    }
-  }
-
-  /// ---------------- WISHLIST ----------------
-  void toggleWishlist(String productId) async {
-    try {
-      final res = await dio.post(
-        ApiEndpoints.toggleWishlist,
-        data: {"userId": testUserId, "productId": productId},
-        options: Options(headers: {"Content-Type": "application/json"}),
-      );
-
-      if (res.data['success'] == true) {
-        SnackbarUtils.showSuccess(context, "Wishlist Updated");
-        setState(() {});
-      }
-    } catch (e) {
-      debugPrint("Wishlist toggle error: $e");
-    }
-  }
-
-  /// ---------------- SHIMMER GRID ----------------
+  // ─── SHIMMER ────────────────────────────────────────────────────────────────
   Widget buildShimmerGrid() {
     return GridView.builder(
       padding: const EdgeInsets.all(14),
@@ -428,7 +428,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     );
   }
 
-  /// ---------------- CARD WIDGET ----------------
+  // ─── PRODUCT CARD ────────────────────────────────────────────────────────────
   Widget buildProductCard(dynamic item) {
     final imageUrl =
         item['imageUrl'] != null && item['imageUrl'].startsWith('http')
@@ -443,28 +443,21 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          /// Image Section
           Expanded(
             child: Stack(
               children: [
-                Container(
-                  decoration: BoxDecoration(color: Colors.grey.shade200),
-                  // ⭐ CachedNetworkImage with shimmer placeholder
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Shimmer.fromColors(
-                      baseColor: Colors.grey.shade200,
-                      highlightColor: Colors.grey.shade100,
-                      child: Container(color: Colors.white),
-                    ),
-                    errorWidget: (context, url, error) =>
-                        const Center(child: Icon(Icons.broken_image, size: 50)),
+                CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Shimmer.fromColors(
+                    baseColor: Colors.grey.shade200,
+                    highlightColor: Colors.grey.shade100,
+                    child: Container(color: Colors.white),
                   ),
+                  errorWidget: (context, url, error) =>
+                      const Center(child: Icon(Icons.broken_image, size: 50)),
                 ),
-
-                /// Wishlist Button
                 Positioned(
                   top: 8,
                   right: 8,
@@ -484,8 +477,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
               ],
             ),
           ),
-
-          /// Product Info
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -498,11 +489,10 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
+                    color: Colors.black87,
                   ),
                 ),
-
                 const SizedBox(height: 4),
-
                 Text(
                   "Rs${item['price'] ?? '0'}",
                   style: TextStyle(
@@ -510,9 +500,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 10),
-
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 38),
@@ -532,12 +520,11 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     );
   }
 
-  /// ---------------- GRID VIEW ----------------
+  // ─── GRID ───────────────────────────────────────────────────────────────────
   Widget buildGrid(List<dynamic> list) {
     if (list.isEmpty) {
       return const Center(child: Text("No products found"));
     }
-
     return GridView.builder(
       padding: const EdgeInsets.all(14),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -551,55 +538,37 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     );
   }
 
-  /// ---------------- BUILD ----------------
+  // ─── BUILD ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    // ⭐ Shimmer loading screen — keeps the AppBar and TabBar visible
-    if (loading) {
-      return Scaffold(
-        appBar: const JerseyAppBar(),
-        body: Column(
-          children: [
-            Material(
-              elevation: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.blueAccent, Colors.indigo],
-                  ),
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: Colors.white,
-                    indicatorWeight: 3,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.white70,
-                    labelStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    tabs: const [
-                      Tab(text: "Club Jerseys"),
-                      Tab(text: "Country Jerseys"),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Expanded(child: buildShimmerGrid()),
-          ],
-        ),
-      );
-    }
-
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: const JerseyAppBar(),
-
       body: Column(
         children: [
+          // ─── Sensor hint banner ─────────────────────────────────
+          Container(
+            width: double.infinity,
+            color: Colors.blueAccent.withOpacity(0.08),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.screen_rotation, size: 13, color: Colors.blueAccent),
+                SizedBox(width: 6),
+                Text(
+                  "Tilt left → Club   |   Tilt right → Country   |   Shake → Refresh",
+                  style: TextStyle(
+                    color: Colors.blueAccent,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ─── Tab Bar ────────────────────────────────────────────
           Material(
             elevation: 4,
             child: Container(
@@ -630,14 +599,17 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
             ),
           ),
 
+          // ─── Content ────────────────────────────────────────────
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                buildGrid(getClubItems()),
-                buildGrid(getCountryItems()),
-              ],
-            ),
+            child: loading
+                ? buildShimmerGrid()
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      buildGrid(getClubItems()),
+                      buildGrid(getCountryItems()),
+                    ],
+                  ),
           ),
         ],
       ),
