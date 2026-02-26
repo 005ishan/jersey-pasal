@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -7,6 +10,7 @@ import 'package:jerseypasal/core/constants/hive_table_constant.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
 import 'package:jerseypasal/features/dashboard/data/models/jersey_hive_model.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shimmer/shimmer.dart';
 
 class JerseyHomeScreen extends StatefulWidget {
@@ -38,6 +42,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     fetchItems();
+    _startShakeDetection();
   }
 
   /// ---------------- FETCH ITEMS ----------------
@@ -77,7 +82,7 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
       }
       // ─── Keep showing cached data if network fails ───
     } finally {
-      setState(() => loading = false);  
+      setState(() => loading = false);
     }
   }
 
@@ -92,6 +97,74 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
     return items
         .where((e) => e['itemType']?.toString().toLowerCase() == 'country')
         .toList();
+  }
+
+  ///----------------Accelerometer (Shake to Refresh)----------------
+  StreamSubscription? _accelerometerSubscription;
+  DateTime? _lastShakeTime;
+
+  // ─── Shake Detection ────────────────────────────────────────────
+  void _startShakeDetection() {
+    _accelerometerSubscription = accelerometerEventStream().listen((event) {
+      double magnitude = sqrt(
+        event.x * event.x + event.y * event.y + event.z * event.z,
+      );
+
+      // Gravity is ~9.8, so anything above 20 is a shake
+      if (magnitude > 20) {
+        final now = DateTime.now();
+        // Prevent multiple triggers — wait 2 seconds between shakes
+        if (_lastShakeTime == null ||
+            now.difference(_lastShakeTime!) > const Duration(seconds: 2)) {
+          _lastShakeTime = now;
+          _onShakeDetected();
+        }
+      }
+    });
+  }
+
+  void _onShakeDetected() {
+    debugPrint('📳 Shake detected! Refreshing jerseys...');
+    SnackbarUtils.showSuccess(context, "Refreshing jerseys...");
+    _shakeRefresh(); // ← separate method for shake refresh
+  }
+
+  // ─── Shake Refresh (forces shimmer) ────────────────────────────
+  void _shakeRefresh() async {
+    // Force shimmer to show
+    setState(() {
+      items = [];
+      loading = true;
+    });
+
+    try {
+      final res = await dio.get(ApiEndpoints.jerseys);
+      final freshItems = res.data['items'] as List? ?? [];
+
+      // Update Hive cache
+      await _jerseyBox.clear();
+      for (var item in freshItems) {
+        final model = JerseyHiveModel.fromJson(item);
+        await _jerseyBox.put(model.id, model);
+      }
+
+      setState(() => items = freshItems);
+    } catch (e) {
+      debugPrint("Shake refresh error: $e");
+      // Restore from cache if network fails
+      final cached = _jerseyBox.values.toList();
+      setState(() => items = cached.map((e) => e.toJson()).toList());
+      SnackbarUtils.showError(context, "Failed to refresh");
+    } finally {
+      setState(() => loading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _accelerometerSubscription?.cancel();
+    _tabController.dispose();
+    super.dispose();
   }
 
   /// ---------------- QUANTITY BOTTOM SHEET ----------------
