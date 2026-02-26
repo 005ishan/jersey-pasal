@@ -1,44 +1,44 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_hive_model.dart';
+part of 'order_item_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
+class OrderItemModelAdapter extends TypeAdapter<OrderItemModel> {
   @override
-  final int typeId = 2;
+  final int typeId = 1;
 
   @override
-  AuthHiveModel read(BinaryReader reader) {
+  OrderItemModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return AuthHiveModel(
-      authId: fields[0] as String?,
-      fullName: fields[1] as String,
-      email: fields[2] as String,
-      password: fields[3] as String?,
-      profilePicture: fields[4] as String?,
+    return OrderItemModel(
+      productId: fields[0] as String,
+      productName: fields[1] as String,
+      quantity: fields[2] as int,
+      price: fields[3] as double,
+      imageUrl: fields[4] as String?,
     );
   }
 
   @override
-  void write(BinaryWriter writer, AuthHiveModel obj) {
+  void write(BinaryWriter writer, OrderItemModel obj) {
     writer
       ..writeByte(5)
       ..writeByte(0)
-      ..write(obj.authId)
+      ..write(obj.productId)
       ..writeByte(1)
-      ..write(obj.fullName)
+      ..write(obj.productName)
       ..writeByte(2)
-      ..write(obj.email)
+      ..write(obj.quantity)
       ..writeByte(3)
-      ..write(obj.password)
+      ..write(obj.price)
       ..writeByte(4)
-      ..write(obj.profilePicture);
+      ..write(obj.imageUrl);
   }
 
   @override
@@ -47,7 +47,7 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AuthHiveModelAdapter &&
+      other is OrderItemModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

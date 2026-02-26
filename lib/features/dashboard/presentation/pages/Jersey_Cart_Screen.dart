@@ -1,10 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 import 'package:jerseypasal/core/api/api_endpoints.dart';
+import 'package:jerseypasal/core/constants/hive_table_constant.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
+import 'package:jerseypasal/features/auth/domain/entities/order_entity.dart';
+import 'package:jerseypasal/features/auth/domain/entities/order_item_entity.dart';
+import 'package:jerseypasal/features/dashboard/data/datasources/local/order_local_datasource.dart';
+import 'package:jerseypasal/features/dashboard/data/datasources/remote/order_remote_datasource.dart';
+import 'package:jerseypasal/features/dashboard/data/models/order_item_model.dart';
+import 'package:jerseypasal/features/dashboard/data/models/order_model.dart';
+import 'package:jerseypasal/features/dashboard/data/repositories/order_repository_impl.dart';
 import 'package:jerseypasal/features/dashboard/presentation/pages/esewa_gateway_screen.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:http/http.dart' as http;
 
 class JerseyCartScreen extends StatefulWidget {
   const JerseyCartScreen({Key? key}) : super(key: key);
@@ -213,7 +223,49 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
   }
 
   // ─── CHECKOUT ───────────────────────────────────────────────────────────────
-  void checkout() {
+  void checkout() async {
+    try {
+      debugPrint('🛒 Starting checkout...');
+      debugPrint('🛒 Cart items count: ${cartItems.length}');
+
+      final orderItems = cartItems.map((item) {
+        final product = item['product'];
+        debugPrint('🛒 Item: ${product['name']} x${item['quantity']}');
+        return OrderItemEntity(
+          productId: product['_id'].toString(),
+          productName: product['name'].toString(),
+          quantity: (item['quantity'] as num).toInt(),
+          price: (product['price'] as num).toDouble(),
+          imageUrl: product['imageUrl']?.toString(),
+        );
+      }).toList();
+
+      final order = OrderEntity(
+        orderId: '',
+        purchasedAt: DateTime.now(),
+        items: orderItems,
+        totalAmount: totalPrice,
+        paymentMethod: 'eSewa',
+        userId: userId, 
+      );
+
+      debugPrint('🛒 Order built: Rs${order.totalAmount}');
+
+      final repo = OrderRepositoryImpl(
+        remote: OrderRemoteDatasourceImpl(http.Client()),
+        local: OrderLocalDatasourceImpl(
+          Hive.box<OrderModel>(HiveTableConstant.orderTable),
+        ),
+      );
+
+      debugPrint('🛒 Saving order to backend + Hive...');
+      await repo.saveOrder(order);
+      debugPrint('✅ Order saved successfully!');
+    } catch (e, stack) {
+      debugPrint('❌ Order save error: $e');
+      debugPrint('❌ Stack: $stack');
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => EsewaGatewayScreen(amount: totalPrice)),

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:jerseypasal/core/services/storage/user_session_service.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
+import 'package:jerseypasal/features/dashboard/presentation/pages/order_history_page.dart';
 import 'package:jerseypasal/features/dashboard/presentation/providers/profile_provider.dart';
 import 'package:jerseypasal/features/dashboard/presentation/widgets/account_settings_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -392,7 +393,19 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
                     icon: Icons.shopping_bag_outlined,
                     title: 'Order History',
                     subtitle: 'View your past purchases',
-                    onTap: () {},
+                    onTap: () {
+                      final userId = ref
+                          .read(userSessionServiceProvider)
+                          .getUserId();
+                      if (userId != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrderHistoryPage(userId: userId),
+                          ),
+                        );
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
 

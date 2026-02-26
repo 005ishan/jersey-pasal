@@ -1,44 +1,47 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_hive_model.dart';
+part of 'order_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
+class OrderModelAdapter extends TypeAdapter<OrderModel> {
   @override
-  final int typeId = 2;
+  final int typeId = 0;
 
   @override
-  AuthHiveModel read(BinaryReader reader) {
+  OrderModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return AuthHiveModel(
-      authId: fields[0] as String?,
-      fullName: fields[1] as String,
-      email: fields[2] as String,
-      password: fields[3] as String?,
-      profilePicture: fields[4] as String?,
+    return OrderModel(
+      orderId: fields[0] as String,
+      purchasedAt: fields[1] as DateTime,
+      items: (fields[2] as List).cast<OrderItemModel>(),
+      totalAmount: fields[3] as double,
+      paymentMethod: fields[4] as String,
+      userId: fields[5] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, AuthHiveModel obj) {
+  void write(BinaryWriter writer, OrderModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
-      ..write(obj.authId)
+      ..write(obj.orderId)
       ..writeByte(1)
-      ..write(obj.fullName)
+      ..write(obj.purchasedAt)
       ..writeByte(2)
-      ..write(obj.email)
+      ..write(obj.items)
       ..writeByte(3)
-      ..write(obj.password)
+      ..write(obj.totalAmount)
       ..writeByte(4)
-      ..write(obj.profilePicture);
+      ..write(obj.paymentMethod)
+      ..writeByte(5)
+      ..write(obj.userId);
   }
 
   @override
@@ -47,7 +50,7 @@ class AuthHiveModelAdapter extends TypeAdapter<AuthHiveModel> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is AuthHiveModelAdapter &&
+      other is OrderModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

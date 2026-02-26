@@ -1,7 +1,6 @@
 class HiveTableConstant {
   HiveTableConstant._();
 
-  //Database name
   static const String dbName = 'jersey-pasal';
 
   static const int favouriteTypeId = 0;
@@ -18,4 +17,9 @@ class HiveTableConstant {
 
   static const int commentsTypeId = 4;
   static const String commentsTable = 'comments_table';
+
+  // ─── Fix: use 5 and 6 to avoid conflicts ───
+  static const int orderTypeId = 5;
+  static const int orderItemTypeId = 6;
+  static const String orderTable = 'order_history';
 }

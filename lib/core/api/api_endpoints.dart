@@ -19,7 +19,7 @@ class ApiEndpoints {
   static String userProfilePicture(String id) => '/users/$id/profile-picture';
   static String updateUserProfile(String id) => '/users/$id/update';
 
- // ============ Jersey / Product Endpoints ============
+  // ============ Jersey / Product Endpoints ============
   static const String jerseys = '/jerseys';
   static String jerseyById(String id) => '/jerseys/$id';
 
@@ -39,6 +39,10 @@ class ApiEndpoints {
   // ============ Orders Endpoints ============
   static const String orders = '/orders';
   static String orderById(String id) => '/orders/$id';
+  static String ordersByUser(String userId) => '/orders /$userId';
+
+  // ─── Add separate base for orders (no /v1) ───
+  static const String ordersBaseUrl = 'http://192.168.137.1:3000/api';
 
   // ============ Review / Comment Endpoints ============
   static const String reviews = '/reviews';
