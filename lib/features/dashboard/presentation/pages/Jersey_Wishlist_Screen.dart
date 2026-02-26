@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 import 'package:jerseypasal/core/api/api_endpoints.dart';
+import 'package:jerseypasal/core/constants/hive_table_constant.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
+import 'package:jerseypasal/features/dashboard/data/models/wishlist_hive_model.dart';
 import 'package:shimmer/shimmer.dart';
 
 class JerseyWishlistScreen extends StatefulWidget {
@@ -42,23 +45,45 @@ class _JerseyWishlistScreenState extends State<JerseyWishlistScreen> {
   }
 
   /// Fetch Wishlist
-  void fetchWishlist() async {
-    setState(() => loading = true);
+  final Box<WishlistHiveModel> _wishlistBox = Hive.box<WishlistHiveModel>(
+    HiveTableConstant.wishlistTable,
+  );
 
+  void fetchWishlist() async {
+    // ─── Show cache instantly ───
+    final cached = _wishlistBox.values.toList();
+    if (cached.isNotEmpty) {
+      setState(() {
+        wishlistItems = cached.map((e) => e.toJson()).toList();
+        loading = false;
+      });
+    } else {
+      setState(() => loading = true);
+    }
+
+    // ─── Fetch fresh from backend ───
     try {
       final res = await dio.get(
         ApiEndpoints.wishlist,
         queryParameters: {"userId": testUserId},
       );
 
-      setState(() {
-        wishlistItems = res.data['wishlist']?['products'] ?? [];
-      });
+      final freshItems = res.data['wishlist']?['products'] as List? ?? [];
+
+      // Cache in Hive
+      await _wishlistBox.clear();
+      for (var item in freshItems) {
+        final model = WishlistHiveModel.fromJson(item);
+        await _wishlistBox.put(model.id, model);
+      }
+
+      setState(() => wishlistItems = freshItems);
     } catch (e) {
       debugPrint("Wishlist fetch error: $e");
+      // Keep showing cached data
+    } finally {
+      setState(() => loading = false);
     }
-
-    setState(() => loading = false);
   }
 
   /// Toggle Wishlist

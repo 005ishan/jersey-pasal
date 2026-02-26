@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:hive/hive.dart';
 import 'package:jerseypasal/core/api/api_endpoints.dart';
+import 'package:jerseypasal/core/constants/hive_table_constant.dart';
 import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/core/utils/snackbar_utils.dart';
+import 'package:jerseypasal/features/dashboard/data/models/jersey_hive_model.dart';
 import 'package:shimmer/shimmer.dart';
 
 class JerseyHomeScreen extends StatefulWidget {
@@ -38,17 +41,43 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
   }
 
   /// ---------------- FETCH ITEMS ----------------
-  void fetchItems() async {
-    try {
-      setState(() => loading = true);
+  final Box<JerseyHiveModel> _jerseyBox = Hive.box<JerseyHiveModel>(
+    HiveTableConstant.jerseyTable,
+  );
 
+  void fetchItems() async {
+    // ─── Show cache instantly ───
+    final cached = _jerseyBox.values.toList();
+    if (cached.isNotEmpty) {
+      setState(() {
+        items = cached.map((e) => e.toJson()).toList();
+        loading = false;
+      });
+    } else {
+      setState(() => loading = true);
+    }
+
+    // ─── Fetch fresh from backend ───
+    try {
       final res = await dio.get(ApiEndpoints.jerseys);
-      setState(() => items = res.data['items'] ?? []);
+      final freshItems = res.data['items'] as List? ?? [];
+
+      // Cache in Hive
+      await _jerseyBox.clear();
+      for (var item in freshItems) {
+        final model = JerseyHiveModel.fromJson(item);
+        await _jerseyBox.put(model.id, model);
+      }
+
+      setState(() => items = freshItems);
     } catch (e) {
       debugPrint("Fetch error: $e");
-      SnackbarUtils.showError(context, "Failed to load jerseys");
+      if (items.isEmpty) {
+        SnackbarUtils.showError(context, "Failed to load jerseys");
+      }
+      // ─── Keep showing cached data if network fails ───
     } finally {
-      setState(() => loading = false);
+      setState(() => loading = false);  
     }
   }
 
