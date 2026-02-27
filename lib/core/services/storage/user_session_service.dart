@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -6,24 +7,28 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// PROVIDERS
 /// ─────────────────────────────────────────────
 
-// SharedPreferences provider (initialized in main.dart)
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError(
     'SharedPreferences must be initialized in main.dart',
   );
 });
 
-// SecureStorage provider
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
   return const FlutterSecureStorage();
 });
 
-// UserSessionService provider
 final userSessionServiceProvider = Provider<UserSessionService>((ref) {
   return UserSessionService(
     prefs: ref.read(sharedPreferencesProvider),
     secureStorage: ref.read(secureStorageProvider),
   );
+});
+
+// reactive name provider for AppBar + Profile Screen
+final userNameProvider = StateProvider<String>((ref) {
+  final session = ref.read(userSessionServiceProvider);
+  return session.getUserName() ??
+      (session.getUserEmail()?.split('@')[0] ?? 'Customer');
 });
 
 /// ─────────────────────────────────────────────
@@ -45,11 +50,12 @@ class UserSessionService {
   static const String _keyUserId = 'user_id';
   static const String _keyUserEmail = 'user_email';
   static const String _keyUserProfileImage = 'user_profile_image';
+  static const String _keyUserName = 'user_name'; // ✅ defined here
 
   // SecureStorage key
   static const String _keyAuthToken = 'auth_token';
 
-  /// ───────── SAVE SESSION (LOGIN / UPDATE PROFILE) ─────────
+  /// ───────── SAVE SESSION ─────────
   Future<void> saveUserSession({
     required String userId,
     required String email,
@@ -71,14 +77,12 @@ class UserSessionService {
 
   /// ───────── LOGOUT / CLEAR SESSION ─────────
   Future<void> clearSession() async {
-    // Only clear auth-related keys, not profile picture
     await _prefs.remove(_keyIsLoggedIn);
     await _prefs.remove(_keyUserId);
     await _prefs.remove(_keyUserEmail);
+    // ✅ _keyUserName intentionally NOT removed — name persists after logout
 
     await _secureStorage.delete(key: _keyAuthToken);
-
-    // DO NOT remove _keyUserProfileImage
   }
 
   /// ───────── GETTERS ─────────
@@ -90,7 +94,14 @@ class UserSessionService {
 
   String? getUserProfileImage() => _prefs.getString(_keyUserProfileImage);
 
+  String? getUserName() => _prefs.getString(_keyUserName);
+
   Future<String?> getAuthToken() async {
     return await _secureStorage.read(key: _keyAuthToken);
+  }
+
+  /// ───────── NAME ─────────
+  Future<void> saveUserName(String name) async {
+    await _prefs.setString(_keyUserName, name);
   }
 }

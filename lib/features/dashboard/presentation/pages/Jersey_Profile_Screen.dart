@@ -23,17 +23,35 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
   String _userName = 'Customer';
   String? _profileUrl;
 
-  void _updateUserName(String newName) {
+  void _updateUserName(String newName) async {
+    final session = ref.read(userSessionServiceProvider);
+    await session.saveUserName(newName);
+
+    ref.read(userNameProvider.notifier).state = newName;
+
     setState(() {
       _userName = newName;
     });
   }
 
-  void _openAccountSettings() {
+  Future<void> _openAccountSettings() async {
+    final userSession = ref.read(userSessionServiceProvider);
+    final userId = userSession.getUserId();
+    final token = await userSession.getAuthToken(); // async secure storage
+
+    if (userId == null || token == null) {
+      _showErrorDialog('Session expired. Please login again.');
+      return;
+    }
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AccountSettingsDialog(
         currentName: _userName,
+        userId: userId,
+        token: token,
         onNameChanged: _updateUserName,
       ),
     );
@@ -53,14 +71,19 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
     final session = ref.read(userSessionServiceProvider);
 
     final email = session.getUserEmail();
-    final username = email != null && email.contains('@')
+    final savedName = session.getUserName();
+    final fallbackName = email != null && email.contains('@')
         ? email.split('@')[0]
         : 'Customer';
+
+    final resolvedName = savedName ?? fallbackName;
+
+    ref.read(userNameProvider.notifier).state = resolvedName;
 
     if (mounted) {
       setState(() {
         _email = email;
-        _userName = username;
+        _userName = resolvedName;
       });
     }
   }
@@ -666,6 +689,7 @@ class _JerseyProfileScreenState extends ConsumerState<JerseyProfileScreen> {
                       // 2️⃣ Clear local session including profile picture
                       final userSession = ref.read(userSessionServiceProvider);
                       await userSession.clearSession();
+                      ref.read(userNameProvider.notifier).state = 'Customer';
                       setState(() {
                         _profileUrl = null; // Reset local profile picture
                       });

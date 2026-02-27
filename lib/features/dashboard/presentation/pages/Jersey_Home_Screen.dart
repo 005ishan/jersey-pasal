@@ -546,28 +546,6 @@ class _JerseyHomeScreenState extends State<JerseyHomeScreen>
       appBar: const JerseyAppBar(),
       body: Column(
         children: [
-          // ─── Sensor hint banner ─────────────────────────────────
-          Container(
-            width: double.infinity,
-            color: Colors.blueAccent.withOpacity(0.08),
-            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 12),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.screen_rotation, size: 13, color: Colors.blueAccent),
-                SizedBox(width: 6),
-                Text(
-                  "Tilt left → Club   |   Tilt right → Country   |   Shake → Refresh",
-                  style: TextStyle(
-                    color: Colors.blueAccent,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // ─── Tab Bar ────────────────────────────────────────────
           Material(
             elevation: 4,
