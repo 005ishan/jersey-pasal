@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:hive/hive.dart';
 import 'package:jerseypasal/core/api/api_endpoints.dart';
 import 'package:jerseypasal/core/constants/hive_table_constant.dart';
-import 'package:jerseypasal/core/widgets/JerseyAppBar.dart';
 import 'package:jerseypasal/features/auth/domain/entities/order_entity.dart';
 import 'package:jerseypasal/features/auth/domain/entities/order_item_entity.dart';
 import 'package:jerseypasal/features/dashboard/data/datasources/local/order_local_datasource.dart';
@@ -226,11 +225,9 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
   void checkout() async {
     try {
       debugPrint('🛒 Starting checkout...');
-      debugPrint('🛒 Cart items count: ${cartItems.length}');
 
       final orderItems = cartItems.map((item) {
         final product = item['product'];
-        debugPrint('🛒 Item: ${product['name']} x${item['quantity']}');
         return OrderItemEntity(
           productId: product['_id'].toString(),
           productName: product['name'].toString(),
@@ -246,10 +243,8 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
         items: orderItems,
         totalAmount: totalPrice,
         paymentMethod: 'eSewa',
-        userId: userId, 
+        userId: userId,
       );
-
-      debugPrint('🛒 Order built: Rs${order.totalAmount}');
 
       final repo = OrderRepositoryImpl(
         remote: OrderRemoteDatasourceImpl(http.Client()),
@@ -258,17 +253,128 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
         ),
       );
 
-      debugPrint('🛒 Saving order to backend + Hive...');
       await repo.saveOrder(order);
-      debugPrint('✅ Order saved successfully!');
+      debugPrint('✅ Order saved!');
     } catch (e, stack) {
-      debugPrint('❌ Order save error: $e');
-      debugPrint('❌ Stack: $stack');
+      debugPrint('❌ Order save error: $e\n$stack');
     }
 
-    Navigator.push(
+    // ⭐ Push eSewa and wait for result (true = success, false = fail/back)
+    final result = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => EsewaGatewayScreen(amount: totalPrice)),
+      MaterialPageRoute(
+        builder: (_) => EsewaGatewayScreen(amount: totalPrice),
+      ),
+    );
+
+    // ⭐ Payment successful — clear cart and show success sheet
+    if (result == true && mounted) {
+      setState(() => cartItems = []);
+      _showSuccessSheet();
+    }
+  }
+
+  // ─── SUCCESS BOTTOM SHEET ────────────────────────────────────────────────────
+  void _showSuccessSheet() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(28, 36, 28, 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Animated check circle ──
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.elasticOut,
+              builder: (_, value, child) =>
+                  Transform.scale(scale: value, child: child),
+              child: Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFEDF7E9),
+                  border: Border.all(
+                    color: const Color(0xFF60BB46),
+                    width: 3,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.check_rounded,
+                  color: Color(0xFF60BB46),
+                  size: 50,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 22),
+
+            const Text(
+              "Order Placed! 🎉",
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1a2314),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            const Text(
+              "Your payment was successful.\nYour jerseys are on their way!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Color(0xFF6b7c63),
+                height: 1.6,
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // ── Back to Home button ──
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // close sheet
+                  // ⭐ Go to home — adjust '/' to match your named route
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/',
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF60BB46),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  shadowColor: const Color(0xFF60BB46).withOpacity(0.4),
+                ),
+                child: const Text(
+                  "Back to Home",
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -346,11 +452,7 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
       ),
       child: IconButton(
         padding: EdgeInsets.zero,
-        icon: Icon(
-          icon,
-          size: 16,
-          color: onPressed == null ? Colors.grey : color,
-        ),
+        icon: Icon(icon, size: 16, color: onPressed == null ? Colors.grey : color),
         onPressed: onPressed,
       ),
     );
@@ -446,193 +548,188 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
         children: [
           if (loading) const LinearProgressIndicator(minHeight: 2),
 
-          // ─── Cart List ──────────────────────────────────────────────────
           Expanded(
             child: loading
-                ? buildShimmerList() // ⭐ shimmer while loading
+                ? buildShimmerList()
                 : cartItems.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 72,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          "Your cart is empty",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "Add some jerseys to get started!",
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
-                    itemCount: cartItems.length,
-                    itemBuilder: (context, index) {
-                      final cartItem = cartItems[index];
-                      final product = cartItem?['product'];
-                      final quantity = ((cartItem?['quantity'] ?? 1) as num)
-                          .toInt();
-
-                      if (product is! Map) return const SizedBox();
-
-                      final productId = product['_id']?.toString() ?? '';
-                      final price =
-                          (product['price'] as num?)?.toDouble() ?? 0.0;
-                      final imageUrl = _buildImageUrl(
-                        product['imageUrl']?.toString(),
-                      );
-                      final isUpdating = _updatingItems.contains(productId);
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              /// ⭐ CachedNetworkImage with shimmer placeholder
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: CachedNetworkImage(
-                                  imageUrl: imageUrl,
-                                  width: 70,
-                                  height: 70,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) =>
-                                      Shimmer.fromColors(
-                                        baseColor: Colors.grey.shade200,
-                                        highlightColor: Colors.grey.shade100,
-                                        child: Container(
-                                          width: 70,
-                                          height: 70,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                  errorWidget: (context, url, error) =>
-                                      Container(
-                                        width: 70,
-                                        height: 70,
-                                        color: Colors.grey.shade100,
-                                        child: const Icon(
-                                          Icons.image_not_supported,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                ),
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.shopping_cart_outlined,
+                              size: 72,
+                              color: Colors.grey.shade300,
+                            ),
+                            const SizedBox(height: 14),
+                            const Text(
+                              "Your cart is empty",
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
                               ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Add some jerseys to get started!",
+                              style: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+                        itemCount: cartItems.length,
+                        itemBuilder: (context, index) {
+                          final cartItem = cartItems[index];
+                          final product = cartItem?['product'];
+                          final quantity =
+                              ((cartItem?['quantity'] ?? 1) as num).toInt();
 
-                              const SizedBox(width: 12),
+                          if (product is! Map) return const SizedBox();
 
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                          final productId = product['_id']?.toString() ?? '';
+                          final price =
+                              (product['price'] as num?)?.toDouble() ?? 0.0;
+                          final imageUrl = _buildImageUrl(
+                            product['imageUrl']?.toString(),
+                          );
+                          final isUpdating = _updatingItems.contains(productId);
+
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      width: 70,
+                                      height: 70,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) =>
+                                          Shimmer.fromColors(
+                                            baseColor: Colors.grey.shade200,
+                                            highlightColor: Colors.grey.shade100,
+                                            child: Container(
+                                              width: 70,
+                                              height: 70,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                      errorWidget: (context, url, error) =>
+                                          Container(
+                                            width: 70,
+                                            height: 70,
+                                            color: Colors.grey.shade100,
+                                            child: const Icon(
+                                              Icons.image_not_supported,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 12),
+
+                                  Expanded(
+                                    child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: Text(
-                                            product['name'] ??
-                                                "Unknown Product",
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                product['name'] ??
+                                                    "Unknown Product",
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 6),
+                                            GestureDetector(
+                                              onTap: isUpdating
+                                                  ? null
+                                                  : () =>
+                                                      removeFromCart(productId),
+                                              child: AnimatedContainer(
+                                                duration: const Duration(
+                                                    milliseconds: 150),
+                                                width: 30,
+                                                height: 30,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: isUpdating
+                                                      ? Colors.grey.shade100
+                                                      : Colors.red.shade50,
+                                                ),
+                                                child: Icon(
+                                                  Icons.delete_outline_rounded,
+                                                  size: 17,
+                                                  color: isUpdating
+                                                      ? Colors.grey.shade400
+                                                      : Colors.redAccent,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
 
-                                        const SizedBox(width: 6),
+                                        const SizedBox(height: 3),
 
-                                        GestureDetector(
-                                          onTap: isUpdating
-                                              ? null
-                                              : () => removeFromCart(productId),
-                                          child: AnimatedContainer(
-                                            duration: const Duration(
-                                              milliseconds: 150,
-                                            ),
-                                            width: 30,
-                                            height: 30,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: isUpdating
-                                                  ? Colors.grey.shade100
-                                                  : Colors.red.shade50,
-                                            ),
-                                            child: Icon(
-                                              Icons.delete_outline_rounded,
-                                              size: 17,
-                                              color: isUpdating
-                                                  ? Colors.grey.shade400
-                                                  : Colors.redAccent,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-
-                                    const SizedBox(height: 3),
-
-                                    Text(
-                                      "Rs${price.toStringAsFixed(2)} each",
-                                      style: TextStyle(
-                                        color: Colors.grey.shade500,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 8),
-
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        _buildQuantityControl(
-                                          productId,
-                                          quantity,
-                                        ),
                                         Text(
-                                          "Rs${(price * quantity).toStringAsFixed(2)}",
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15,
-                                            color: Colors.blueAccent,
+                                          "Rs${price.toStringAsFixed(2)} each",
+                                          style: TextStyle(
+                                            color: Colors.grey.shade500,
+                                            fontSize: 12,
                                           ),
+                                        ),
+
+                                        const SizedBox(height: 8),
+
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _buildQuantityControl(
+                                                productId, quantity),
+                                            Text(
+                                              "Rs${(price * quantity).toStringAsFixed(2)}",
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                                color: Colors.blueAccent,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                            ),
+                          );
+                        },
+                      ),
           ),
 
           // ─── Footer ──────────────────────────────────────────────────────
@@ -657,18 +754,14 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
                     Text(
                       "$totalItems item(s)",
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
+                          fontSize: 14, color: Colors.grey.shade600),
                     ),
                     Row(
                       children: [
                         const Text(
                           "Total: ",
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                         Text(
                           "Rs${totalPrice.toStringAsFixed(2)}",
@@ -702,14 +795,12 @@ class _JerseyCartScreenState extends State<JerseyCartScreen> {
                         ? const Text(
                             "Proceed to Checkout",
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                                fontSize: 16, fontWeight: FontWeight.bold),
                           )
-                        : Row(
+                        : const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 "Esewa Pay Now",
                                 style: TextStyle(
                                   fontSize: 16,
