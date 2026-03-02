@@ -10,47 +10,53 @@ import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart'
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/reset_password_usecase.dart';
-import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
-import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
+import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Signup_Screen.dart';
 
 class MockLoginUsecase extends Mock implements LoginUsecase {}
 class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 class MockLogoutUsecase extends Mock implements LogoutUsecase {}
 class MockGetCurrentUserUsecase extends Mock implements GetCurrentUserUsecase {}
 class MockResetPasswordUsecase extends Mock implements ResetPasswordUsecase {}
-class MockBuildContext extends Mock implements BuildContext {}
 
 const tEmail = 'test@example.com';
 const tPassword = 'password123';
+const tAuthEntity = AuthEntity(email: tEmail);
 
 void main() {
+  late MockRegisterUsecase mockRegister;
+
   setUpAll(() {
     registerFallbackValue(LoginUsecaseParams(email: '', password: ''));
     registerFallbackValue(RegisterUsecaseParams(email: '', password: ''));
     registerFallbackValue(ResetPasswordUsecaseParams(email: '', newPassword: ''));
   });
 
-  test('3. login failure sets status to error with message', () async {
-    final mockLogin = MockLoginUsecase();
-    when(() => mockLogin.call(any()))
-        .thenAnswer((_) async => Left(ApiFailure(message: 'Invalid credentials')));
+  setUp(() {
+    mockRegister = MockRegisterUsecase();
+  });
 
-    final container = ProviderContainer(overrides: [
-      loginUsecaseProvider.overrideWithValue(mockLogin),
-      registerUsecaseProvider.overrideWithValue(MockRegisterUsecase()),
+  Widget buildSignup() => ProviderScope(
+    overrides: [
+      loginUsecaseProvider.overrideWithValue(MockLoginUsecase()),
+      registerUsecaseProvider.overrideWithValue(mockRegister),
       logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
       getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
       resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
-    ]);
+    ],
+    child: const MaterialApp(home: JerseySignupScreen()),
+  );
 
-    await container.read(authViewModelProvider.notifier).login(
-      context: MockBuildContext(),
-      email: tEmail,
-      password: tPassword,
-    );
-
-    final state = container.read(authViewModelProvider);
-    expect(state.status, AuthStatus.error);
-    expect(state.errorMessage, 'Invalid credentials');
+  testWidgets('20. shows loading indicator while registering', (tester) async {
+    when(() => mockRegister.call(any())).thenAnswer((_) async =>
+        Future.delayed(const Duration(seconds: 2), () => const Right(true)));
+    await tester.pumpWidget(buildSignup());
+    await tester.enterText(find.byType(TextFormField).at(0), tEmail);
+    await tester.enterText(find.byType(TextFormField).at(1), tPassword);
+    await tester.enterText(find.byType(TextFormField).at(2), tPassword);
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    await tester.tap(find.text('Sign Up'));
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

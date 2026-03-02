@@ -4,47 +4,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:jerseypasal/core/error/failures.dart';
+import 'package:jerseypasal/features/auth/domain/entities/auth_entity.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/get_current_user_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/reset_password_usecase.dart';
-import 'package:jerseypasal/features/auth/presentation/view_model/auth_view_model.dart';
-import 'package:jerseypasal/features/auth/presentation/state/auth_state.dart';
+import 'package:jerseypasal/features/auth/presentation/pages/Jersey_Login_Screen.dart';
 
 class MockLoginUsecase extends Mock implements LoginUsecase {}
 class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 class MockLogoutUsecase extends Mock implements LogoutUsecase {}
 class MockGetCurrentUserUsecase extends Mock implements GetCurrentUserUsecase {}
 class MockResetPasswordUsecase extends Mock implements ResetPasswordUsecase {}
-class MockBuildContext extends Mock implements BuildContext {}
+
+const tEmail = 'test@example.com';
+const tPassword = 'password123';
+const tAuthEntity = AuthEntity(email: tEmail);
 
 void main() {
+  late MockLoginUsecase mockLogin;
+
   setUpAll(() {
     registerFallbackValue(LoginUsecaseParams(email: '', password: ''));
     registerFallbackValue(RegisterUsecaseParams(email: '', password: ''));
     registerFallbackValue(ResetPasswordUsecaseParams(email: '', newPassword: ''));
   });
 
-  test('7. logout failure sets status to error with message', () async {
-    final mockLogout = MockLogoutUsecase();
-    when(() => mockLogout.call())
-        .thenAnswer((_) async => Left(ApiFailure(message: 'Logout failed')));
+  setUp(() {
+    mockLogin = MockLoginUsecase();
+  });
 
-    final container = ProviderContainer(overrides: [
-      loginUsecaseProvider.overrideWithValue(MockLoginUsecase()),
+  Widget buildLogin() => ProviderScope(
+    overrides: [
+      loginUsecaseProvider.overrideWithValue(mockLogin),
       registerUsecaseProvider.overrideWithValue(MockRegisterUsecase()),
-      logoutUsecaseProvider.overrideWithValue(mockLogout),
+      logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
       getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
       resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
-    ]);
+    ],
+    child: const MaterialApp(home: JerseyLoginScreen()),
+  );
 
-    await container.read(authViewModelProvider.notifier).logout(
-      context: MockBuildContext(),
-    );
-
-    final state = container.read(authViewModelProvider);
-    expect(state.status, AuthStatus.error);
-    expect(state.errorMessage, 'Logout failed');
+  testWidgets('9. login button is disabled when loading', (tester) async {
+    when(() => mockLogin.call(any())).thenAnswer((_) async =>
+        Future.delayed(const Duration(seconds: 2), () => const Right(tAuthEntity)));
+    await tester.pumpWidget(buildLogin());
+    await tester.enterText(find.widgetWithIcon(TextFormField, Icons.email), tEmail);
+    await tester.enterText(find.widgetWithIcon(TextFormField, Icons.lock), tPassword);
+    await tester.tap(find.text('Login'));
+    await tester.pump();
+    final btn = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+    expect(btn.onPressed, isNull);
   });
 }
