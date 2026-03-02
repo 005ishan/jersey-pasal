@@ -1,47 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jerseypasal/app/routes/app_routes.dart';
-import 'package:jerseypasal/core/services/storage/user_session_service.dart';
-import '../../../onboarding/presentation/pages/Jersey_Onboarding1_Screen.dart';
-import '../../../dashboard/presentation/widgets/DashboardLayout.dart';
+import 'package:jerseypasal/features/onboarding/presentation/pages/Jersey_Onboarding2_Screen.dart';
 
-class JerseySplashScreen extends ConsumerStatefulWidget {
-  const JerseySplashScreen({super.key});
+class JerseyOnboarding1Screen extends StatefulWidget {
+  const JerseyOnboarding1Screen({super.key});
 
   @override
-  ConsumerState<JerseySplashScreen> createState() => _JerseySplashScreenState();
+  State<JerseyOnboarding1Screen> createState() => _JerseyOnboarding1ScreenState();
 }
 
-class _JerseySplashScreenState extends ConsumerState<JerseySplashScreen>
+class _JerseyOnboarding1ScreenState extends State<JerseyOnboarding1Screen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
-  late Animation<double> _glowAnim;
+  late Animation<Offset> _slideAnim;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-
-    _scaleAnim = Tween<double>(begin: 0.7, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-    _fadeAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
-    );
-    _glowAnim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-          parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeOut)),
-    );
-
+        vsync: this, duration: const Duration(milliseconds: 800));
+    _fadeAnim =
+        CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _navigateToNext());
   }
 
   @override
@@ -50,17 +32,47 @@ class _JerseySplashScreenState extends ConsumerState<JerseySplashScreen>
     super.dispose();
   }
 
-  Future<void> _navigateToNext() async {
-    await Future.delayed(const Duration(milliseconds: 3200));
-    if (!mounted) return;
-    final userSessionService = ref.read(userSessionServiceProvider);
-    final isLoggedIn = userSessionService.isLoggedIn();
-    if (isLoggedIn) {
-      AppRoutes.pushReplacement(context, const DashboardLayout());
-    } else {
-      AppRoutes.pushReplacement(context, const JerseyOnboarding1Screen());
-    }
+  @override
+  Widget build(BuildContext context) {
+    return _OnboardingShell(
+      fadeAnim: _fadeAnim,
+      slideAnim: _slideAnim,
+      step: 1,
+      images: const [
+        'assets/images/jersey1.jpg',
+        'assets/images/jersey2.jpg',
+        'assets/images/jersey3.jpg',
+      ],
+      headline: 'Welcome to\nJERSEYपसल',
+      subtitle: 'Your one-stop destination for premium\nand authentic jerseys.',
+      buttonLabel: 'Next',
+      onNext: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const JerseyOnboarding2Screen())),
+    );
   }
+}
+
+// ─── Shared onboarding shell — included in each onboarding file ──────────────
+class _OnboardingShell extends StatelessWidget {
+  final Animation<double> fadeAnim;
+  final Animation<Offset> slideAnim;
+  final int step;
+  final List<String> images;
+  final String headline;
+  final String subtitle;
+  final String buttonLabel;
+  final VoidCallback onNext;
+
+  const _OnboardingShell({
+    required this.fadeAnim,
+    required this.slideAnim,
+    required this.step,
+    required this.images,
+    required this.headline,
+    required this.subtitle,
+    required this.buttonLabel,
+    required this.onNext,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,105 +80,190 @@ class _JerseySplashScreenState extends ConsumerState<JerseySplashScreen>
       backgroundColor: const Color(0xFF0F0F23),
       body: Stack(
         children: [
-          // Top-right blob
+          // Blobs
           Positioned(
-            top: -100,
-            right: -100,
+            top: -80,
+            right: -60,
             child: Container(
-              width: 320,
-              height: 320,
+              width: 240,
+              height: 240,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  const Color(0xFFE94560).withOpacity(0.3),
+                  const Color(0xFFE94560).withOpacity(0.25),
                   Colors.transparent,
                 ]),
               ),
             ),
           ),
-          // Bottom-left blob
           Positioned(
-            bottom: -80,
-            left: -80,
+            bottom: 40,
+            left: -60,
             child: Container(
-              width: 260,
-              height: 260,
+              width: 200,
+              height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [
-                  const Color(0xFF533483).withOpacity(0.4),
+                  const Color(0xFF533483).withOpacity(0.35),
                   Colors.transparent,
                 ]),
               ),
             ),
           ),
 
-          Center(
+          SafeArea(
             child: FadeTransition(
-              opacity: _fadeAnim,
-              child: ScaleTransition(
-                scale: _scaleAnim,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Animated icon container
-                    AnimatedBuilder(
-                      animation: _glowAnim,
-                      builder: (_, __) => Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE94560),
-                          borderRadius: BorderRadius.circular(28),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFE94560)
-                                  .withOpacity(0.5 * _glowAnim.value),
-                              blurRadius: 40 * _glowAnim.value,
-                              spreadRadius: 4 * _glowAnim.value,
+              opacity: fadeAnim,
+              child: SlideTransition(
+                position: slideAnim,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
+
+                      // Brand bar
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(children: [
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE94560),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.sports_soccer,
+                                  color: Colors.white, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'JERSEYपसल',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ]),
+                          // Step dots
+                          Row(
+                            children: List.generate(3, (i) {
+                              final active = i + 1 == step;
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                width: active ? 22 : 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: active
+                                      ? const Color(0xFFE94560)
+                                      : Colors.white24,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Image mosaic
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _imgCard(images[0]),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Expanded(child: _imgCard(images[1])),
+                                  const SizedBox(height: 10),
+                                  Expanded(child: _imgCard(images[2])),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.sports_soccer,
-                          color: Colors.white,
-                          size: 52,
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Text content
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          headline,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w900,
+                            height: 1.1,
+                            letterSpacing: -1,
+                          ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // Brand name
-                    const Text(
-                      'JERSEYपसल',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          subtitle,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
+                        ),
                       ),
-                    ),
 
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 32),
 
-                    const Text(
-                      'Authentic Football Jerseys',
-                      style: TextStyle(
-                        color: Colors.white38,
-                        fontSize: 14,
-                        letterSpacing: 0.5,
+                      // Button row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 54,
+                              child: ElevatedButton(
+                                onPressed: onNext,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFE94560),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      buttonLabel,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Icon(Icons.arrow_forward, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
 
-                    const SizedBox(height: 56),
-
-                    // Loading dots
-                    FadeTransition(
-                      opacity: _glowAnim,
-                      child: const _PulsingDots(),
-                    ),
-                  ],
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -175,58 +272,29 @@ class _JerseySplashScreenState extends ConsumerState<JerseySplashScreen>
       ),
     );
   }
-}
 
-class _PulsingDots extends StatefulWidget {
-  const _PulsingDots();
-  @override
-  State<_PulsingDots> createState() => _PulsingDotsState();
-}
-
-class _PulsingDotsState extends State<_PulsingDots>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _c;
-
-  @override
-  void initState() {
-    super.initState();
-    _c = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 900))
-      ..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (i) {
-        final delay = i * 0.25;
-        return AnimatedBuilder(
-          animation: _c,
-          builder: (_, __) {
-            final t = (_c.value - delay).clamp(0.0, 1.0);
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 5),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color.lerp(
-                  Colors.white24,
-                  const Color(0xFFE94560),
-                  t,
-                ),
-              ),
-            );
-          },
-        );
-      }),
+  Widget _imgCard(String path) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF1A1A2E),
+        boxShadow: [  
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          path,
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.cover,
+        ),
+      ),
     );
   }
 }

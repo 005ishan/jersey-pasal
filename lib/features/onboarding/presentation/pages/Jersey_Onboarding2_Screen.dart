@@ -1,134 +1,297 @@
 import 'package:flutter/material.dart';
 import 'package:jerseypasal/features/onboarding/presentation/pages/Jersey_Onboarding3_Screen.dart';
 
-class JerseyOnboarding2Screen extends StatelessWidget {
+class JerseyOnboarding2Screen extends StatefulWidget {
   const JerseyOnboarding2Screen({super.key});
 
-   @override
+  @override
+  State<JerseyOnboarding2Screen> createState() => _JerseyOnboarding2ScreenState();
+}
+
+class _JerseyOnboarding2ScreenState extends State<JerseyOnboarding2Screen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
+    _fadeAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _OnboardingShell(
+      fadeAnim: _fadeAnim,
+      slideAnim: _slideAnim,
+      step: 2,
+      images: const [
+        'assets/images/jersey5.jpg',
+        'assets/images/jersey4.jpg',
+        'assets/images/jersey6.jpg',
+      ],
+      headline: 'Choose Your\nTeam',
+      subtitle: 'Find jerseys from all your favorite clubs\nand national teams.',
+      buttonLabel: 'Next',
+      onNext: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const JerseyOnboarding3Screen())),
+    );
+  }
+}
+
+// ─── Shared onboarding shell — included in each onboarding file ──────────────
+class _OnboardingShell extends StatelessWidget {
+  final Animation<double> fadeAnim;
+  final Animation<Offset> slideAnim;
+  final int step;
+  final List<String> images;
+  final String headline;
+  final String subtitle;
+  final String buttonLabel;
+  final VoidCallback onNext;
+
+  const _OnboardingShell({
+    required this.fadeAnim,
+    required this.slideAnim,
+    required this.step,
+    required this.images,
+    required this.headline,
+    required this.subtitle,
+    required this.buttonLabel,
+    required this.onNext,
+  });
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Center(
-                child: Text(
-                  'JERSEYपसल',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+      backgroundColor: const Color(0xFF0F0F23),
+      body: Stack(
+        children: [
+          // Blobs
+          Positioned(
+            top: -80,
+            right: -60,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(colors: [
+                  const Color(0xFFE94560).withOpacity(0.25),
+                  Colors.transparent,
+                ]),
               ),
+            ),
+          ),
+          Positioned(
+            bottom: 40,
+            left: -60,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(colors: [
+                  const Color(0xFF533483).withOpacity(0.35),
+                  Colors.transparent,
+                ]),
+              ),
+            ),
+          ),
 
-              SizedBox(height: 20),
+          SafeArea(
+            child: FadeTransition(
+              opacity: fadeAnim,
+              child: SlideTransition(
+                position: slideAnim,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 20),
 
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(10)),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.asset('assets/images/jersey5.jpg',
-                              width: 300,
-                              height: 800,
-                              fit: BoxFit.cover),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
+                      // Brand bar
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Container(
+                          Row(children: [
+                            Container(
+                              width: 34,
+                              height: 34,
                               decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: ClipRRect(
+                                color: const Color(0xFFE94560),
                                 borderRadius: BorderRadius.circular(10),
-                                child: Image.asset('assets/images/jersey4.jpg',
-                                    fit: BoxFit.cover),
+                              ),
+                              child: const Icon(Icons.sports_soccer,
+                                  color: Colors.white, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'JERSEYपसल',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1,
                               ),
                             ),
+                          ]),
+                          // Step dots
+                          Row(
+                            children: List.generate(3, (i) {
+                              final active = i + 1 == step;
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                margin: const EdgeInsets.symmetric(horizontal: 3),
+                                width: active ? 22 : 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: active
+                                      ? const Color(0xFFE94560)
+                                      : Colors.white24,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              );
+                            }),
                           ),
-                          SizedBox(height: 10),
+                        ],
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Image mosaic
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _imgCard(images[0]),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Expanded(child: _imgCard(images[1])),
+                                  const SizedBox(height: 10),
+                                  Expanded(child: _imgCard(images[2])),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Text content
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          headline,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 34,
+                            fontWeight: FontWeight.w900,
+                            height: 1.1,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          subtitle,
+                          style: const TextStyle(
+                            color: Colors.white54,
+                            fontSize: 14,
+                            height: 1.6,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Button row
+                      Row(
+                        children: [
                           Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset('assets/images/jersey6.jpg',
-                                    fit: BoxFit.cover),
+                            child: SizedBox(
+                              height: 54,
+                              child: ElevatedButton(
+                                onPressed: onNext,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFE94560),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      buttonLabel,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    const Icon(Icons.arrow_forward, size: 18),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    )
-                  ],
-                ),
-              ),
 
-              SizedBox(height: 20),
-
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      "CHOOSE YOUR TEAM",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Find jerseys from all your favorite clubs and national teams.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20),
-
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => JerseyOnboarding3Screen()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Next',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      SizedBox(width: 10),
-                      Icon(Icons.arrow_forward, color: Colors.white),
+                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
-              )
-            ],
+              ),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _imgCard(String path) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF1A1A2E),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3), 
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          path,
+          width: double.infinity,
+          height: double.infinity,
+          fit: BoxFit.cover,
         ),
       ),
     );
