@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:jerseypasal/core/error/failures.dart';
-import 'package:jerseypasal/features/auth/domain/entities/auth_entity.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
@@ -20,7 +20,6 @@ class MockResetPasswordUsecase extends Mock implements ResetPasswordUsecase {}
 
 const tEmail = 'test@example.com';
 const tPassword = 'password123';
-const tAuthEntity = AuthEntity(email: tEmail);
 
 void main() {
   late MockRegisterUsecase mockRegister;
@@ -35,28 +34,39 @@ void main() {
     mockRegister = MockRegisterUsecase();
   });
 
-  Widget buildSignup() => ProviderScope(
-    overrides: [
-      loginUsecaseProvider.overrideWithValue(MockLoginUsecase()),
-      registerUsecaseProvider.overrideWithValue(mockRegister),
-      logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
-      getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
-      resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
-    ],
-    child: const MaterialApp(home: JerseySignupScreen()),
-  );
-
   testWidgets('20. shows loading indicator while registering', (tester) async {
-    when(() => mockRegister.call(any())).thenAnswer((_) async =>
-        Future.delayed(const Duration(seconds: 2), () => const Right(true)));
-    await tester.pumpWidget(buildSignup());
-    await tester.enterText(find.byType(TextFormField).at(0), tEmail);
-    await tester.enterText(find.byType(TextFormField).at(1), tPassword);
-    await tester.enterText(find.byType(TextFormField).at(2), tPassword);
+    // Completer keeps register pending — loading indicator stays visible
+    final completer = Completer<Either<Failure, bool>>();
+    when(() => mockRegister.call(any()))
+        .thenAnswer((_) async => completer.future);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          loginUsecaseProvider.overrideWithValue(MockLoginUsecase()),
+          registerUsecaseProvider.overrideWithValue(mockRegister),
+          logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
+          getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
+          resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
+        ],
+        child: const MaterialApp(home: JerseySignupScreen()),
+      ),
+    );
+
+    final fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(0), tEmail);
+    await tester.enterText(fields.at(1), tPassword);
+    await tester.enterText(fields.at(2), tPassword);
     await tester.tap(find.byType(Checkbox));
     await tester.pump();
+
     await tester.tap(find.text('Sign Up'));
-    await tester.pump();
+    await tester.pump(); // loading state kicks in
+
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Resolve so no pending timers remain
+    completer.complete(const Right(true));
+    await tester.pump();
   });
 }

@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:jerseypasal/core/error/failures.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:jerseypasal/features/auth/domain/entities/auth_entity.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart';
@@ -35,25 +36,37 @@ void main() {
     mockLogin = MockLoginUsecase();
   });
 
-  Widget buildLogin() => ProviderScope(
-    overrides: [
-      loginUsecaseProvider.overrideWithValue(mockLogin),
-      registerUsecaseProvider.overrideWithValue(MockRegisterUsecase()),
-      logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
-      getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
-      resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
-    ],
-    child: const MaterialApp(home: JerseyLoginScreen()),
-  );
+  testWidgets('7. shows loading indicator while login is in progress',
+      (tester) async {
+    // Use a Completer so the future never resolves during this test —
+    // the login stays in "loading" state the whole time.
+    final completer = Completer<Either<Failure, AuthEntity>>();
+    when(() => mockLogin.call(any())).thenAnswer((_) async => completer.future);
 
-  testWidgets('7. shows loading indicator while login is in progress', (tester) async {
-    when(() => mockLogin.call(any())).thenAnswer((_) async =>
-        Future.delayed(const Duration(seconds: 2), () => const Right(tAuthEntity)));
-    await tester.pumpWidget(buildLogin());
-    await tester.enterText(find.widgetWithIcon(TextFormField, Icons.email), tEmail);
-    await tester.enterText(find.widgetWithIcon(TextFormField, Icons.lock), tPassword);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          loginUsecaseProvider.overrideWithValue(mockLogin),
+          registerUsecaseProvider.overrideWithValue(MockRegisterUsecase()),
+          logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
+          getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
+          resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
+        ],
+        child: const MaterialApp(home: JerseyLoginScreen()),
+      ),
+    );
+
+    await tester.enterText(
+        find.widgetWithIcon(TextFormField, Icons.email), tEmail);
+    await tester.enterText(
+        find.widgetWithIcon(TextFormField, Icons.lock), tPassword);
     await tester.tap(find.text('Login'));
-    await tester.pump();
+    await tester.pump(); // trigger loading state
+
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    // Resolve the completer so the test ends cleanly (no pending timers)
+    completer.complete(const Right(tAuthEntity));
+    await tester.pump();
   });
 }
