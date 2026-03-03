@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jerseypasal/core/error/failures.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:jerseypasal/features/auth/domain/entities/auth_entity.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/login_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/register_usecase.dart';
 import 'package:jerseypasal/features/auth/domain/usecases/logout_usecase.dart';
@@ -23,10 +24,10 @@ class MockResetPasswordUsecase extends Mock implements ResetPasswordUsecase {}
 
 const tEmail = 'test@example.com';
 const tPassword = 'password123';
-// FIX: Removed const — dartz Right() does not support const constructor
-final tAuthEntity = AuthEntity(email: tEmail);
 
 // ─── Builder ─────────────────────────────────────────────────────────────────
+// FIX: onGenerateRoute intercepts navigation away from signup (e.g. to login
+//      or home) so Hive is never accessed during tests.
 
 Widget buildSignup({MockRegisterUsecase? mockRegister}) => ProviderScope(
       overrides: [
@@ -34,17 +35,29 @@ Widget buildSignup({MockRegisterUsecase? mockRegister}) => ProviderScope(
         registerUsecaseProvider
             .overrideWithValue(mockRegister ?? MockRegisterUsecase()),
         logoutUsecaseProvider.overrideWithValue(MockLogoutUsecase()),
-        getCurrentUserUsecaseProvider
-            .overrideWithValue(MockGetCurrentUserUsecase()),
-        resetPasswordUsecaseProvider
-            .overrideWithValue(MockResetPasswordUsecase()),
+        getCurrentUserUsecaseProvider.overrideWithValue(MockGetCurrentUserUsecase()),
+        resetPasswordUsecaseProvider.overrideWithValue(MockResetPasswordUsecase()),
       ],
-      child: const MaterialApp(home: JerseySignupScreen()),
+      child: MediaQuery(
+        data: const MediaQueryData(size: Size(800, 1400)),
+        child: MaterialApp(
+          home: const JerseySignupScreen(),
+          onGenerateRoute: (_) => MaterialPageRoute(
+            builder: (_) => const Scaffold(body: SizedBox()),
+          ),
+        ),
+      ),
     );
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/// Fills all 3 form fields with valid data
+Future<void> scrollAndTap(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
 Future<void> fillValidForm(WidgetTester tester) async {
   await tester.enterText(
     find.widgetWithText(TextFormField, 'you@example.com'),
@@ -60,13 +73,27 @@ Future<void> fillValidForm(WidgetTester tester) async {
   );
 }
 
-/// Taps the custom terms row (AnimatedContainer, not CheckboxListTile)
 Future<void> acceptTerms(WidgetTester tester) async {
+  await tester.ensureVisible(
+    find.text('I agree to the Terms & Conditions and Privacy Policy'),
+  );
+  await tester.pumpAndSettle();
   await tester.tap(
     find.text('I agree to the Terms & Conditions and Privacy Policy'),
   );
   await tester.pumpAndSettle();
 }
+
+// FIX: RichText spans not found by find.text/textContaining.
+//      Walk toPlainText() of the RichText widget to match substrings.
+Finder findRichText(String substring) => find.byWidgetPredicate(
+      (widget) {
+        if (widget is RichText) {
+          return widget.text.toPlainText().contains(substring);
+        }
+        return false;
+      },
+    );
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -79,7 +106,6 @@ void main() {
 
   group('Signup Screen — Widget Tests', () {
     // TC-SIGNUP-W-01
-    // Button is 'Create Account' not 'Sign Up'. 3 TextFormFields.
     testWidgets(
         'TC-SIGNUP-W-01: renders email, password, confirm password and Create Account button',
         (tester) async {
@@ -92,14 +118,12 @@ void main() {
     });
 
     // TC-SIGNUP-W-02
-    // Tap 'Create Account' with no input — email error shows
     testWidgets('TC-SIGNUP-W-02: shows error when email is empty on submit',
         (tester) async {
       await tester.pumpWidget(buildSignup());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Create Account'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, find.text('Create Account'));
 
       expect(find.text('Email cannot be empty'), findsOneWidget);
     });
@@ -114,14 +138,12 @@ void main() {
         find.widgetWithText(TextFormField, 'you@example.com'),
         'not-valid',
       );
-      await tester.tap(find.text('Create Account'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, find.text('Create Account'));
 
       expect(find.text('Enter a valid email'), findsOneWidget);
     });
 
     // TC-SIGNUP-W-04
-    // .first targets password field, .last targets confirm field
     testWidgets(
         'TC-SIGNUP-W-04: shows error when password is shorter than 6 chars on signup',
         (tester) async {
@@ -136,8 +158,7 @@ void main() {
         find.widgetWithText(TextFormField, '••••••••').first,
         'abc',
       );
-      await tester.tap(find.text('Create Account'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, find.text('Create Account'));
 
       expect(find.text('Password must be at least 6 characters'), findsOneWidget);
     });
@@ -160,23 +181,19 @@ void main() {
         find.widgetWithText(TextFormField, '••••••••').last,
         'differentpassword',
       );
-      await tester.tap(find.text('Create Account'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, find.text('Create Account'));
 
       expect(find.text('Passwords do not match'), findsOneWidget);
     });
 
     // TC-SIGNUP-W-06
-    // Terms is NOT a CheckboxListTile — it's a custom GestureDetector + Row.
-    // Submitting without ticking terms shows a SnackBar.
     testWidgets('TC-SIGNUP-W-06: shows snackbar when terms not checked',
         (tester) async {
       await tester.pumpWidget(buildSignup());
       await tester.pumpAndSettle();
 
       await fillValidForm(tester);
-      await tester.tap(find.text('Create Account'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, find.text('Create Account'));
 
       expect(
         find.text('You must agree to Terms & Privacy Policy'),
@@ -185,7 +202,6 @@ void main() {
     });
 
     // TC-SIGNUP-W-07
-    // Terms row uses AnimatedContainer, found by its text label
     testWidgets('TC-SIGNUP-W-07: terms and conditions row is rendered',
         (tester) async {
       await tester.pumpWidget(buildSignup());
@@ -198,49 +214,41 @@ void main() {
     });
 
     // TC-SIGNUP-W-08
-    // Tap terms text to toggle, then submit — register usecase called once
-    // FIX: Right(tAuthEntity) not const Right(tAuthEntity)
     testWidgets(
         'TC-SIGNUP-W-08: calls register usecase when form is valid and terms accepted',
         (tester) async {
       final mockRegister = MockRegisterUsecase();
       when(() => mockRegister(any()))
-          .thenAnswer((_) async => Right(tAuthEntity));
+          .thenAnswer((_) async => const Right(true));
 
       await tester.pumpWidget(buildSignup(mockRegister: mockRegister));
       await tester.pumpAndSettle();
 
       await fillValidForm(tester);
       await acceptTerms(tester);
-
-      await tester.tap(find.text('Create Account'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, find.text('Create Account'));
 
       verify(() => mockRegister(any())).called(1);
     });
 
     // TC-SIGNUP-W-09
-    // Signup screen shows 'Sign in' link (note: double space before 'Sign in')
+    // FIX: RichText not found by find.textContaining — use findRichText().
     testWidgets('TC-SIGNUP-W-09: shows login redirect link on signup screen',
         (tester) async {
       await tester.pumpWidget(buildSignup());
       await tester.pumpAndSettle();
 
-      expect(find.text('Already have an account?  '), findsOneWidget);
-      expect(find.text('Sign in'), findsOneWidget);
+      expect(findRichText('Already have an account?'), findsOneWidget);
+      expect(findRichText('Sign in'), findsOneWidget);
     });
 
     // TC-SIGNUP-W-10
-    // Tap terms + submit with never-resolving mock → loading indicator shows
+    // FIX: Completer instead of Future.delayed — no pending timer left after test.
     testWidgets('TC-SIGNUP-W-10: shows loading indicator while registering',
         (tester) async {
       final mockRegister = MockRegisterUsecase();
-      when(() => mockRegister(any())).thenAnswer(
-        (_) async => Future.delayed(
-          const Duration(seconds: 60),
-          () => Right(tAuthEntity),
-        ),
-      );
+      final completer = Completer<Either<Failure, bool>>();
+      when(() => mockRegister(any())).thenAnswer((_) async => completer.future);
 
       await tester.pumpWidget(buildSignup(mockRegister: mockRegister));
       await tester.pumpAndSettle();
@@ -248,10 +256,16 @@ void main() {
       await fillValidForm(tester);
       await acceptTerms(tester);
 
+      await tester.ensureVisible(find.text('Create Account'));
+      await tester.pump();
       await tester.tap(find.text('Create Account'));
-      await tester.pump(); // one frame — loading state visible
+      await tester.pump(); // single frame — loading visible
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Complete to clean up async work
+      completer.complete(const Right(true));
+      await tester.pumpAndSettle();
     });
   });
 }
