@@ -2,6 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:jerseypasal/core/constants/hive_table_constant.dart';
 import 'package:jerseypasal/features/auth/data/models/auth_hive_model.dart';
+import 'package:jerseypasal/features/dashboard/data/models/jersey_hive_model.dart';
+import 'package:jerseypasal/features/dashboard/data/models/order_item_model.dart';
+import 'package:jerseypasal/features/dashboard/data/models/order_model.dart';
+import 'package:jerseypasal/features/dashboard/data/models/wishlist_hive_model.dart';
 import 'package:path_provider/path_provider.dart';
 
 final hiveServiceProvider = Provider<HiveService>((ref) => HiveService());
@@ -19,11 +23,34 @@ class HiveService {
     if (!Hive.isAdapterRegistered(HiveTableConstant.authTypeId)) {
       Hive.registerAdapter(AuthHiveModelAdapter());
     }
+    if (!Hive.isAdapterRegistered(HiveTableConstant.orderTypeId)) {
+      Hive.registerAdapter(OrderModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(HiveTableConstant.orderItemTypeId)) {
+      Hive.registerAdapter(OrderItemModelAdapter());
+    }
+    // ─── New ───
+    if (!Hive.isAdapterRegistered(HiveTableConstant.jerseyTypeId)) {
+      Hive.registerAdapter(JerseyHiveModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(HiveTableConstant.wishlistTypeId)) {
+      Hive.registerAdapter(WishlistHiveModelAdapter());
+    }
   }
 
-  Future<void> _openBoxes() async { 
+  Future<void> _openBoxes() async {
     if (!Hive.isBoxOpen(HiveTableConstant.authTable)) {
       await Hive.openBox<AuthHiveModel>(HiveTableConstant.authTable);
+    }
+    if (!Hive.isBoxOpen(HiveTableConstant.orderTable)) {
+      await Hive.openBox<OrderModel>(HiveTableConstant.orderTable);
+    }
+    // ─── New ───
+    if (!Hive.isBoxOpen(HiveTableConstant.jerseyTable)) {
+      await Hive.openBox<JerseyHiveModel>(HiveTableConstant.jerseyTable);
+    }
+    if (!Hive.isBoxOpen(HiveTableConstant.wishlistTable)) {
+      await Hive.openBox<WishlistHiveModel>(HiveTableConstant.wishlistTable);
     }
   }
 
@@ -33,7 +60,8 @@ class HiveService {
   Box<AuthHiveModel> get _authBox {
     if (!Hive.isBoxOpen(HiveTableConstant.authTable)) {
       throw Exception(
-          "Hive box '${HiveTableConstant.authTable}' not opened. Call init() first.");
+        "Hive box '${HiveTableConstant.authTable}' not opened. Call init() first.",
+      );
     }
     return Hive.box<AuthHiveModel>(HiveTableConstant.authTable);
   }
