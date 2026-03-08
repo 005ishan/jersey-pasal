@@ -39,7 +39,7 @@ class ApiEndpoints {
   // ============ Orders Endpoints ============
   static const String orders = '/orders';
   static String orderById(String id) => '/orders/$id';
-  static String ordersByUser(String userId) => '/orders /$userId';
+  static String ordersByUser(String userId) => '/orders/$userId';
 
   // ─── Add separate base for orders (no /v1) ───
   static const String ordersBaseUrl = 'http://192.168.137.1:3000/api';

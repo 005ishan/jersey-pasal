@@ -123,6 +123,7 @@ dev_dependencies:
   # Testing
   mocktail: ^1.0.3
   fake_async: ^1.3.1
+  test_cov_console: ^0.2.2
 
 flutter_icons:
   android: true
